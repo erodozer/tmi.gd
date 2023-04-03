@@ -1,3 +1,4 @@
+class_name TwitchIrc
 extends Node
 
 const TWITCH_IRC_ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
@@ -6,28 +7,25 @@ const TWITCH_IRC_ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
 @export var credentials: TwitchCredentials
 @export var autoconnect: bool = false
 
-class IrcCommand:
-	var metadata: Dictionary = {}
-	var who: String
-	var command: String
-	var message: String
-
 var socket = WebSocketPeer.new()
 
-signal IrcMessageReceived(IrcCommand: String)
-
-# specific command types
+signal IrcMessageReceived(command: TwitchIrcCommand)
 signal Connected(channel)
 signal Request(acknowledge)
+
+# specific command types
 signal UserState(username)
-signal Message(channel:String, content: String, userState: Dictionary)
+signal Message(channel:String, text: String, rawMessage: String, userState: Dictionary)
 
 var is_connected = false
 var COMMAND_REGEX: RegEx
 
 func _ready():
 	IrcMessageReceived.connect(self.handle_command)
-
+	
+	var privmsg_handler = preload("./commands/privmsg.gd").new().handle_message.bind(self)
+	IrcMessageReceived.connect(privmsg_handler)
+	
 	# twitch IRC command parsing using regex grouops
 	COMMAND_REGEX = RegEx.new()
 	COMMAND_REGEX.compile("(@(?<metadata>.*)\\s)?(:(.*!.*@)?((?<username>.*)\\.)?tmi\\.twitch\\.tv\\s)(?<command>(\\S*))\\s*(?<message>.*)")
@@ -48,11 +46,11 @@ func _process(_delta):
 		# detect first moment of when we're open
 		if not is_connected:
 			is_connected = true
-			setup_connection()
+			_setup_connection()
 			
 		# read current received packets until end of buffer
 		while socket.get_available_packet_count():
-			handle_packet(socket.get_packet())
+			_handle_packet(socket.get_packet())
 			
 	elif state == WebSocketPeer.STATE_CLOSING:
 		# Keep polling to achieve proper close.
@@ -63,7 +61,7 @@ func _process(_delta):
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 		set_process(false) # Stop processing.
 	
-func setup_connection():
+func _setup_connection():
 	# this requests for this client to receive additional twitch IRC specific commands
 	# in its command stream.
 	var err = socket.send_text("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
@@ -95,37 +93,49 @@ func setup_connection():
 	# begin a ping-pong with the server to keep the bot alive
 	var ping_interval = Timer.new()
 	ping_interval.wait_time = 1.0
-	ping_interval.timeout.connect(self.send_ping)
+	ping_interval.timeout.connect(self._send_ping)
 	add_child(ping_interval)
 	ping_interval.start()
+	print("twitch-gd: we're in")
 
-func handle_packet(packet: PackedByteArray):
+func _handle_packet(packet: PackedByteArray):
 	# converts a websocket message from the IRC stream into an object
 	var event = packet.get_string_from_utf8()
-	print_debug("from twitch:\n%s" % event)
+	#print("from twitch:\n%s" % event)
 	
-	for message in event.split("\n"):
-		var command = parse_twitch_message(message)
+	for message in event.strip_edges().split("\n"):
+		var command = _parse_twitch_message(message)
 		if command:
 			IrcMessageReceived.emit(command)
 	
-func send_ping():
-	# keeps the connection alive
+## Keeps the connection alive by sending PING requests to the server
+func _send_ping():
 	if socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
 		return
 		
 	socket.send_text("PING")
 
-func send_pong():
-	# respond to server ping requests to keep alive
+## Responds to server ping requests to keep alive
+func _send_pong():
 	socket.send_text("PONG")
+	
+## Sends a PRIVMSG to a specified channel.
+## If the channel is not specified, we default to using the first channel that 
+## we are connected to
+func send_message(text, channel = null):
+	socket.send_text("PRIVMSG #%s %s" % [
+		channels[0] if channel == null else channel,
+		text
+	])
 
-func parse_twitch_message(rawMessage: String):
+## parses out an IRC message and converts it into a rich 
+## [IrcCommand] if possible
+func _parse_twitch_message(rawMessage: String):
 	var result = COMMAND_REGEX.search(rawMessage)
 	if not result:
 		return null
 
-	var command = IrcCommand.new()
+	var command = TwitchIrcCommand.new()
 		
 	if result.get_string("metadata"):
 		# convert metadata into a dictionary
@@ -133,18 +143,7 @@ func parse_twitch_message(rawMessage: String):
 		for group in result.get_string("metadata").split(";"):
 			var data = group.split("=")
 			
-			var is_array = "," in data[1]
-			var is_object = "/" in data[1]
-			if is_object:
-				var nested = {}
-				for entry in data[1].split(","):
-					var xy = entry.split("/")
-					nested[xy[0]] = xy[1]
-				metadata[data[0]] = nested
-			elif is_array:
-				metadata[data[0]] = data[1].split(",")
-			else:
-				metadata[data[0]] = data[1]
+			metadata[data[0]] = data[1]
 		
 		metadata['display-name'] = result.get_string("username")
 			
@@ -156,30 +155,13 @@ func parse_twitch_message(rawMessage: String):
 	
 	return command
 	
-func handle_command(ircCommand: IrcCommand):
+func handle_command(ircCommand: TwitchIrcCommand):
 	match ircCommand.command:
 		"JOIN":
 			Connected.emit(ircCommand.message) # bot has joined a channel
 		"CAP":
 			Request.emit(ircCommand.message.begins_with("* ACK"))
 		"PING":
-			send_pong()
-		"PRIVMSG":
-			handle_privmsg(ircCommand)
+			_send_pong()
 		_:
 			pass
-
-var PRIVMSG_PARSER: RegEx
-func handle_privmsg(ircCommand: IrcCommand):
-	# convert metadata into dictionary
-	if not PRIVMSG_PARSER:
-		PRIVMSG_PARSER = RegEx.new()
-		PRIVMSG_PARSER.compile("#(?<channel>.*)\\s:(?<message>.*)")
-	
-	var result = PRIVMSG_PARSER.search(ircCommand.message)
-	if result:
-		Message.emit(
-			result.get_string("channel"),
-			result.get_string("message"),
-			ircCommand.metadata
-		)

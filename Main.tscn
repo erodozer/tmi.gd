@@ -3,11 +3,43 @@
 [ext_resource type="Script" path="res://addons/twitch/irc.gd" id="1_dni5r"]
 
 [sub_resource type="GDScript" id="GDScript_v83m8"]
-script/source = "extends Label
+script/source = "extends RichTextLabel
 
-func _on_twitch_message(channel, content, userState):
-	text = \"%s: %s\" % [userState[\"display-name\"], content]
-	self_modulate = Color.from_string(userState.color, Color.WHITE)
+const CACHE_LIMIT = 500
+const cached_emotes = {}
+
+func _render_message(message: String, emotes: Dictionary = {}):
+	var stringReplacements = []
+	
+	# iterate of emotes to access ids and positions
+	for id in emotes:
+		# use only the first position to find out the emote key word
+		var emote = emotes[id]
+		var position = emote.positions[0]
+		var stringToReplace = message.substr(
+			position[0],
+			position[1] - position[0] + 1
+		)
+		
+		stringReplacements.append({
+			\"stringToReplace\": stringToReplace,
+			\"replacement\": \"[img=%d]%s[/img]\" % [get_theme_default_font_size() * 2.0, emote.texture.resource_path],
+		})
+	
+	# convert the text into bbcode
+	for r in stringReplacements:
+		message = message.replace(r.stringToReplace, r.replacement)
+		
+	return message
+
+func _on_twitch_message(_channel, content, userState):
+	append_text(
+		\"[color=#%s]%s[/color]: %s\\n\" % [
+			Color.from_string(userState.color, Color.WHITE).to_html(false),
+			userState[\"display-name\"],
+			_render_message(content, userState.emotes)
+		]
+	)
 "
 
 [node name="Node" type="Node"]
@@ -17,9 +49,16 @@ script = ExtResource("1_dni5r")
 channels = Array[String](["erodozer"])
 autoconnect = true
 
-[node name="RichTextLabel" type="Label" parent="."]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+bbcode_enabled = true
+fit_content = true
+shortcut_keys_enabled = false
 script = SubResource("GDScript_v83m8")
 
 [connection signal="Message" from="Twitch" to="RichTextLabel" method="_on_twitch_message"]
