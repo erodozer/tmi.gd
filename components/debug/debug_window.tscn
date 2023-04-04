@@ -1,0 +1,89 @@
+[gd_scene load_steps=4 format=3 uid="uid://pg142e3w2fu1"]
+
+[ext_resource type="Script" path="res://components/debug/debug_window.gd" id="1_tjxpa"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_moot8"]
+content_margin_left = 4.0
+content_margin_top = 11.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.168627, 0.180392, 0.219608, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="Theme" id="Theme_vr6yv"]
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_moot8")
+
+[node name="Window" type="Window"]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+initial_position = 1
+size = Vector2i(320, 600)
+extend_to_title = true
+content_scale_mode = 1
+script = ExtResource("1_tjxpa")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.121569, 0.129412, 0.164706, 1)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_vr6yv")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Bubbles" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles"]
+layout_mode = 2
+text = "Bubbles"
+
+[node name="BubbleMessage" type="TextEdit" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles"]
+layout_mode = 2
+alignment = 2
+
+[node name="ClearBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Clear"
+
+[node name="SendBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Send"
+
+[node name="DebugBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Lorem Ipsum"

@@ -1,46 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://qlveow25bthq"]
+[gd_scene load_steps=6 format=3 uid="uid://qlveow25bthq"]
 
 [ext_resource type="Script" path="res://addons/twitch/irc.gd" id="1_dni5r"]
-
-[sub_resource type="GDScript" id="GDScript_v83m8"]
-script/source = "extends RichTextLabel
-
-const CACHE_LIMIT = 500
-const cached_emotes = {}
-
-func _render_message(message: String, emotes: Dictionary = {}):
-	var stringReplacements = []
-	
-	# iterate of emotes to access ids and positions
-	for id in emotes:
-		# use only the first position to find out the emote key word
-		var emote = emotes[id]
-		var position = emote.positions[0]
-		var stringToReplace = message.substr(
-			position[0],
-			position[1] - position[0] + 1
-		)
-		
-		stringReplacements.append({
-			\"stringToReplace\": stringToReplace,
-			\"replacement\": \"[img=%d]%s[/img]\" % [get_theme_default_font_size() * 2.0, emote.texture.resource_path],
-		})
-	
-	# convert the text into bbcode
-	for r in stringReplacements:
-		message = message.replace(r.stringToReplace, r.replacement)
-		
-	return message
-
-func _on_twitch_message(_channel, content, userState):
-	append_text(
-		\"[color=#%s]%s[/color]: %s\\n\" % [
-			Color.from_string(userState.color, Color.WHITE).to_html(false),
-			userState[\"display-name\"],
-			_render_message(content, userState.emotes)
-		]
-	)
-"
+[ext_resource type="PackedScene" uid="uid://pg142e3w2fu1" path="res://components/debug/debug_window.tscn" id="2_x60kq"]
+[ext_resource type="PackedScene" uid="uid://d2mvk45vkp64l" path="res://components/bubbles/bubble_stack.tscn" id="3_m4grd"]
+[ext_resource type="PackedScene" uid="uid://dcj1k1861jbkj" path="res://components/chatbox/chatbox.tscn" id="4_1diag"]
+[ext_resource type="PackedScene" uid="uid://chays4n5ylcvm" path="res://components/clock/clock.tscn" id="5_x16ny"]
 
 [node name="Node" type="Node"]
 
@@ -49,16 +13,29 @@ script = ExtResource("1_dni5r")
 channels = Array[String](["erodozer"])
 autoconnect = true
 
-[node name="RichTextLabel" type="RichTextLabel" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-bbcode_enabled = true
-fit_content = true
-shortcut_keys_enabled = false
-script = SubResource("GDScript_v83m8")
+[node name="Window" parent="." instance=ExtResource("2_x60kq")]
 
-[connection signal="Message" from="Twitch" to="RichTextLabel" method="_on_twitch_message"]
+[node name="StreamerBubbles" parent="." instance=ExtResource("3_m4grd")]
+
+[node name="Chatbox" parent="." instance=ExtResource("4_1diag")]
+custom_minimum_size = Vector2(300, 0)
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -324.0
+offset_top = 64.0
+offset_right = -24.0
+offset_bottom = 64.0
+grow_horizontal = 0
+scale = Vector2(0.8, 0.8)
+size_flags_horizontal = 8
+
+[node name="Clock" parent="." instance=ExtResource("5_x16ny")]
+offset_left = 1148.0
+offset_top = 649.0
+offset_right = 1232.0
+offset_bottom = 712.0
+
+[connection signal="Command" from="Twitch" to="StreamerBubbles" method="_on_twitch_command"]
+[connection signal="Command" from="Twitch" to="Chatbox" method="_on_twitch_command"]
+[connection signal="send_bubble" from="Window" to="StreamerBubbles" method="_on_window_send_bubble"]

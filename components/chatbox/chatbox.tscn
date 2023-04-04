@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://dcj1k1861jbkj"]
+
+[ext_resource type="Script" path="res://components/chatbox/chatbox.gd" id="1_nvllb"]
+
+[node name="Chatbox" type="Control"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 3
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nvllb")

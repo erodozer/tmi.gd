@@ -10,11 +10,27 @@ config_version=5
 
 [application]
 
-config/name="Twitch.interactivenovel"
+config/name="tmi.gd"
+run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.0", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/transparent=true
+window/per_pixel_transparency/allowed=true
+window/vsync/vsync_mode=0
+window/subwindows/embed_subwindows=false
+window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray()
 
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+viewport/transparent_background=true

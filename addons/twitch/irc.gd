@@ -7,24 +7,34 @@ const TWITCH_IRC_ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
 @export var credentials: TwitchCredentials
 @export var autoconnect: bool = false
 
+@export_category("Features")
+@export var enable_bttv_emotes = false
+@export var enable_7tv_emotes = false
+@export var include_profile_images = false
+@export var include_pronouns = false
+
 var socket = WebSocketPeer.new()
 
 signal IrcMessageReceived(command: TwitchIrcCommand)
 signal Connected(channel)
+signal Authenticated(success)
 signal Request(acknowledge)
 
 # specific command types
+signal Command(type, event)
 signal UserState(username)
-signal Message(channel:String, text: String, rawMessage: String, userState: Dictionary)
 
 var is_connected = false
 var COMMAND_REGEX: RegEx
 
+var commands = [
+	preload("./commands/privmsg.gd").new(self),
+	preload("./commands/roomstate.gd").new(self),
+	preload("./commands/userstate.gd").new(self),
+]
+
 func _ready():
 	IrcMessageReceived.connect(self.handle_command)
-	
-	var privmsg_handler = preload("./commands/privmsg.gd").new().handle_message.bind(self)
-	IrcMessageReceived.connect(privmsg_handler)
 	
 	# twitch IRC command parsing using regex grouops
 	COMMAND_REGEX = RegEx.new()
@@ -61,31 +71,36 @@ func _process(_delta):
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 		set_process(false) # Stop processing.
 	
+func _login_with_credentials(credentials: TwitchCredentials):
+	socket.send_text("PASS %s" % credentials.get_password.call())
+	socket.send_text("NICK %s" % credentials.bot_id)
+	
 func _setup_connection():
 	# this requests for this client to receive additional twitch IRC specific commands
 	# in its command stream.
 	var err = socket.send_text("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
 	if err:
-		print_debug("failed to request additional capabiltilies")
+		push_error("failed to request additional capabiltilies")
+		socket.close()
 		return
-		
-	# set authentication of the integration so that the bot
-	# may assume an identity within chat
-	if credentials:
-		socket.send_text("PASS oauth:%s" % credentials.token)
-		socket.send_text("NICK %s" % credentials.bot_id)
-	else:
-		# fallback to random justinfan user
-		var username = "%s%d" % ["justinfan", randi_range(1000, 80000)]
-		socket.send_text("PASS SCHMOOPIIE")
-		socket.send_text("NICK %s" % username)
 		
 	# wait for cap req acknowledgement before proceeding
 	var acknowledged = await Request
 	if not acknowledged:
-		print_debug("capability request denied")
+		push_error("capability request denied")
+		socket.close()
 		return
 		
+	# set authentication of the integration so that the bot
+	# may assume an identity within chat
+	
+	_login_with_credentials(credentials if credentials else TwitchCredentials.get_fallback_credentials())
+	var authed = await Authenticated
+	if not authed:
+		push_error("Authentication failed")
+		socket.close()
+		return
+
 	# join channels to listen to
 	socket.send_text("JOIN #%s" % ",#".join(channels))
 	await Connected
@@ -161,6 +176,10 @@ func handle_command(ircCommand: TwitchIrcCommand):
 			Connected.emit(ircCommand.message) # bot has joined a channel
 		"CAP":
 			Request.emit(ircCommand.message.begins_with("* ACK"))
+		"NOTICE":
+			Authenticated.emit(false)
+		"001":
+			Authenticated.emit(true)
 		"PING":
 			_send_pong()
 		_:
