@@ -1,24 +1,14 @@
-[gd_scene load_steps=7 format=3 uid="uid://qlveow25bthq"]
+[gd_scene load_steps=5 format=3 uid="uid://qlveow25bthq"]
 
 [ext_resource type="PackedScene" uid="uid://cht3fq1xc2cov" path="res://addons/twitch/tmi.tscn" id="1_hirkq"]
-[ext_resource type="Script" path="res://addons/twitch/models/credentials.gd" id="2_owytt"]
 [ext_resource type="PackedScene" uid="uid://pg142e3w2fu1" path="res://components/debug/debug_window.tscn" id="2_x60kq"]
 [ext_resource type="PackedScene" uid="uid://ccenwry0rkni4" path="res://overlays/foreground_overlays.tscn" id="4_4wwpd"]
 [ext_resource type="PackedScene" uid="uid://bcqqjjenx87m0" path="res://overlays/background_overlays.tscn" id="5_20kdc"]
-
-[sub_resource type="Resource" id="Resource_ecq3x"]
-script = ExtResource("2_owytt")
-bot_id = "erodozer"
-client_id = "4ddff19fwy68ugl8sdmxdy1go8enfn"
-client_secret = "p7xqa3mfuvdtcadjdhptsps2j4n2cy"
-token = "fkobh614z30s08l7s0mg9um6pi0edt"
-refresh_token = "c3upfoqip2hhpmc2gi10e7h8w0t9hr9zf8aljy0q7nexza3evj"
 
 [node name="Node" type="Node"]
 
 [node name="Twitch" parent="." instance=ExtResource("1_hirkq")]
 channel = "erodozer"
-credentials = SubResource("Resource_ecq3x")
 autoconnect = true
 include_profile_images = true
 

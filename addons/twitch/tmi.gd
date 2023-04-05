@@ -29,8 +29,13 @@ func _set_credentials(credentials: TwitchCredentials):
 	twitch_api.credentials = credentials
 	
 	credentials_updated.emit(credentials)
+	
+	TwitchCredentials.save_to_disk(credentials)
 
 func _ready():
+	if not credentials:
+		credentials = TwitchCredentials.load_from_disk()
+	
 	if credentials:
 		_set_credentials(await twitch_api.refresh_token(credentials))
 		
