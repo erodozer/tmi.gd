@@ -6,14 +6,12 @@ extends Control
 const CACHE_LIMIT = 500
 const cached_emotes = {}
 
-func _on_twitch_command(type, event):
+func _on_irc_command(type, event):
 	if type != "message":
 		return
 	
 	var text = preload("./chatmessage.tscn").instantiate()
 	add_child(text)
-	
-	text.get_node("%Username").text = event.tags["display-name"]
 	
 	text.modulate = Color.TRANSPARENT
 	text.visible_ratio = 1.0
@@ -29,6 +27,17 @@ func _on_twitch_command(type, event):
 	text.modulate = Color.WHITE
 	pivot_offset = Vector2(text.size.x, 0)
 	text.position = Vector2(size.x - text.size.x, 0)
+	
+	# inject user profile information
+	text.get_node("%Username").text = event.sender.display_name
+	if event.sender.pronouns:
+		text.get_node("%Pronouns").visible = true
+		text.get_node("%Pronouns/Label").text = event.sender.pronouns
+	else:
+		text.get_node("%Pronouns").visible = false
+	var image = event.sender.profile_image
+	if image:
+		text.get_node("%ProfileImage").texture = image
 	
 	# spawn in message
 	var t = text.create_tween()

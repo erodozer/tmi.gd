@@ -7,7 +7,7 @@
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_68ff8"]
 content_margin_left = 14.0
 content_margin_top = 6.0
-content_margin_right = 6.0
+content_margin_right = 14.0
 content_margin_bottom = 6.0
 bg_color = Color(0.831373, 0.333333, 0.556863, 1)
 corner_radius_top_left = 64
@@ -17,9 +17,9 @@ corner_radius_bottom_left = 64
 expand_margin_left = 64.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rrelb"]
-content_margin_left = 6.0
+content_margin_left = 8.0
 content_margin_top = 0.0
-content_margin_right = 6.0
+content_margin_right = 0.0
 content_margin_bottom = 0.0
 bg_color = Color(1, 1, 1, 1)
 corner_radius_top_left = 64
@@ -28,7 +28,7 @@ corner_radius_bottom_right = 64
 corner_radius_bottom_left = 64
 expand_margin_left = 6.0
 expand_margin_top = 6.0
-expand_margin_right = 6.0
+expand_margin_right = 14.0
 expand_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7wvyy"]
@@ -44,9 +44,13 @@ expand_margin_bottom = 16.0
 
 [node name="Message" type="RichTextLabel"]
 clip_contents = false
-offset_right = 1280.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -1280.0
 offset_bottom = 74.0
-size_flags_horizontal = 10
+grow_horizontal = 0
+size_flags_horizontal = 8
 size_flags_vertical = 4
 theme_override_colors/default_color = Color(0.498039, 0.439216, 0.317647, 1)
 theme_override_fonts/normal_font = ExtResource("1_6qj4k")
@@ -109,12 +113,12 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "usernameHere"
 
-[node name="PanelContainer" type="PanelContainer" parent="Control/Header/PanelContainer/HBoxContainer"]
+[node name="Pronouns" type="PanelContainer" parent="Control/Header/PanelContainer/HBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rrelb")
 
-[node name="Pronouns" type="Label" parent="Control/Header/PanelContainer/HBoxContainer/PanelContainer"]
-unique_name_in_owner = true
+[node name="Label" type="Label" parent="Control/Header/PanelContainer/HBoxContainer/Pronouns"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "he/they"

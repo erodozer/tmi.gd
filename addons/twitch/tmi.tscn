@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://cht3fq1xc2cov"]
+
+[ext_resource type="Script" path="res://addons/twitch/tmi.gd" id="1_3yu75"]
+[ext_resource type="Script" path="res://addons/twitch/irc.gd" id="2_bigrf"]
+[ext_resource type="Script" path="res://addons/twitch/apis/twitch.gd" id="3_4fr7a"]
+[ext_resource type="Script" path="res://addons/twitch/apis/7tv.gd" id="4_y7ei2"]
+
+[node name="Twitch" type="Node"]
+script = ExtResource("1_3yu75")
+
+[node name="Irc" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_bigrf")
+
+[node name="TwitchAPI" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_4fr7a")
+
+[node name="7tvAPI" type="Node" parent="."]
+script = ExtResource("4_y7ei2")

@@ -24,6 +24,7 @@ window/per_pixel_transparency/allowed=true
 window/vsync/vsync_mode=0
 window/subwindows/embed_subwindows=false
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [editor_plugins]
 

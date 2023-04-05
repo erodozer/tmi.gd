@@ -3,17 +3,9 @@ extends Node
 
 const TWITCH_IRC_ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
 
-@export var channels: Array[String]
-@export var credentials: TwitchCredentials
-@export var autoconnect: bool = false
-
-@export_category("Features")
-@export var enable_bttv_emotes = false
-@export var enable_7tv_emotes = false
-@export var include_profile_images = false
-@export var include_pronouns = false
-
-var socket = WebSocketPeer.new()
+var channel: String
+var credentials: TwitchCredentials
+var socket: WebSocketPeer
 
 signal IrcMessageReceived(command: TwitchIrcCommand)
 signal Connected(channel)
@@ -22,33 +14,33 @@ signal Request(acknowledge)
 
 # specific command types
 signal Command(type, event)
-signal UserState(username)
 
 var is_connected = false
 var COMMAND_REGEX: RegEx
 
-var commands = [
-	preload("./commands/privmsg.gd").new(self),
-	preload("./commands/roomstate.gd").new(self),
-	preload("./commands/userstate.gd").new(self),
+@onready var commands = [
+	await preload("./commands/privmsg.gd").new(get_parent()),
+	await preload("./commands/roomstate.gd").new(get_parent()),
+	await preload("./commands/userstate.gd").new(get_parent()),
 ]
 
-func _ready():
-	IrcMessageReceived.connect(self.handle_command)
-	
+func _init():
 	# twitch IRC command parsing using regex grouops
 	COMMAND_REGEX = RegEx.new()
 	COMMAND_REGEX.compile("(@(?<metadata>.*)\\s)?(:(.*!.*@)?((?<username>.*)\\.)?tmi\\.twitch\\.tv\\s)(?<command>(\\S*))\\s*(?<message>.*)")
 	
-	if autoconnect:
-		connect_to_server()
-
+	IrcMessageReceived.connect(self.handle_command)
+	
 func connect_to_server():
 	is_connected = false
+	socket = WebSocketPeer.new()
 	# create websocket connection to twitch irc endpoitn
 	socket.connect_to_url(TWITCH_IRC_ENDPOINT)
 	
 func _process(_delta):
+	if socket == null:
+		return
+	
 	socket.poll()
 	
 	var state = socket.get_ready_state()
@@ -102,7 +94,7 @@ func _setup_connection():
 		return
 
 	# join channels to listen to
-	socket.send_text("JOIN #%s" % ",#".join(channels))
+	socket.send_text("JOIN #%s" % channel)
 	await Connected
 	
 	# begin a ping-pong with the server to keep the bot alive
@@ -138,8 +130,8 @@ func _send_pong():
 ## If the channel is not specified, we default to using the first channel that 
 ## we are connected to
 func send_message(text, channel = null):
-	socket.send_text("PRIVMSG #%s %s" % [
-		channels[0] if channel == null else channel,
+	socket.send_text("PRIVMSG #%s :%s" % [
+		self.channel if channel == null else channel,
 		text
 	])
 

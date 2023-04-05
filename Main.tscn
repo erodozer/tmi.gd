@@ -1,17 +1,27 @@
-[gd_scene load_steps=6 format=3 uid="uid://qlveow25bthq"]
+[gd_scene load_steps=8 format=3 uid="uid://qlveow25bthq"]
 
-[ext_resource type="Script" path="res://addons/twitch/irc.gd" id="1_dni5r"]
+[ext_resource type="PackedScene" uid="uid://cht3fq1xc2cov" path="res://addons/twitch/tmi.tscn" id="1_hirkq"]
+[ext_resource type="Script" path="res://addons/twitch/models/credentials.gd" id="2_owytt"]
 [ext_resource type="PackedScene" uid="uid://pg142e3w2fu1" path="res://components/debug/debug_window.tscn" id="2_x60kq"]
 [ext_resource type="PackedScene" uid="uid://d2mvk45vkp64l" path="res://components/bubbles/bubble_stack.tscn" id="3_m4grd"]
 [ext_resource type="PackedScene" uid="uid://dcj1k1861jbkj" path="res://components/chatbox/chatbox.tscn" id="4_1diag"]
 [ext_resource type="PackedScene" uid="uid://chays4n5ylcvm" path="res://components/clock/clock.tscn" id="5_x16ny"]
 
+[sub_resource type="Resource" id="Resource_ecq3x"]
+script = ExtResource("2_owytt")
+bot_id = "erodozer"
+client_id = "4ddff19fwy68ugl8sdmxdy1go8enfn"
+client_secret = "p7xqa3mfuvdtcadjdhptsps2j4n2cy"
+token = "fkobh614z30s08l7s0mg9um6pi0edt"
+refresh_token = "c3upfoqip2hhpmc2gi10e7h8w0t9hr9zf8aljy0q7nexza3evj"
+
 [node name="Node" type="Node"]
 
-[node name="Twitch" type="Node" parent="."]
-script = ExtResource("1_dni5r")
-channels = Array[String](["erodozer"])
+[node name="Twitch" parent="." instance=ExtResource("1_hirkq")]
+channel = "erodozer"
+credentials = SubResource("Resource_ecq3x")
 autoconnect = true
+include_profile_images = true
 
 [node name="Window" parent="." instance=ExtResource("2_x60kq")]
 
@@ -19,14 +29,10 @@ autoconnect = true
 
 [node name="Chatbox" parent="." instance=ExtResource("4_1diag")]
 custom_minimum_size = Vector2(300, 0)
-anchors_preset = 11
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -324.0
-offset_top = 64.0
-offset_right = -24.0
-offset_bottom = 64.0
-grow_horizontal = 0
+offset_left = -339.0
+offset_top = 74.0
+offset_right = 14.0
+offset_bottom = 74.0
 scale = Vector2(0.8, 0.8)
 size_flags_horizontal = 8
 
@@ -36,6 +42,8 @@ offset_top = 649.0
 offset_right = 1232.0
 offset_bottom = 712.0
 
-[connection signal="Command" from="Twitch" to="StreamerBubbles" method="_on_twitch_command"]
-[connection signal="Command" from="Twitch" to="Chatbox" method="_on_twitch_command"]
+[connection signal="Command" from="Twitch/Irc" to="StreamerBubbles" method="_on_irc_command"]
+[connection signal="Command" from="Twitch/Irc" to="Chatbox" method="_on_irc_command"]
 [connection signal="send_bubble" from="Window" to="StreamerBubbles" method="_on_window_send_bubble"]
+
+[editable path="Twitch"]

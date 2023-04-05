@@ -8,7 +8,7 @@ extends Control
 func _on_window_send_bubble(text):
 	_push_to_stack(text)
 
-func _on_twitch_command(type, event):
+func _on_irc_command(type, event):
 	if type != "message":
 		return
 		

@@ -3,10 +3,10 @@
 [ext_resource type="Script" path="res://components/debug/debug_window.gd" id="1_tjxpa"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_moot8"]
-content_margin_left = 4.0
-content_margin_top = 11.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
 bg_color = Color(0.168627, 0.180392, 0.219608, 1)
 border_width_left = 1
 border_width_top = 1
@@ -50,39 +50,41 @@ theme = SubResource("Theme_vr6yv")
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MarginContainer" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
+[node name="BubblesForm" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Bubbles" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/BubblesForm"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles"]
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/BubblesForm/VBoxContainer"]
 layout_mode = 2
 text = "Bubbles"
 
-[node name="BubbleMessage" type="TextEdit" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles"]
+[node name="BubbleMessage" type="LineEdit" parent="ScrollContainer/VBoxContainer/BubblesForm/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_vertical = 3
+context_menu_enabled = false
+shortcut_keys_enabled = false
 
-[node name="HBoxContainer" type="HBoxContainer" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles"]
+[node name="HBoxContainer" type="HFlowContainer" parent="ScrollContainer/VBoxContainer/BubblesForm/VBoxContainer"]
 layout_mode = 2
 alignment = 2
 
-[node name="ClearBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles/HBoxContainer"]
+[node name="ClearBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/BubblesForm/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 text = "Clear"
 
-[node name="SendBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles/HBoxContainer"]
+[node name="SendBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/BubblesForm/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 text = "Send"
 
-[node name="DebugBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/MarginContainer/Bubbles/HBoxContainer"]
+[node name="DebugBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/BubblesForm/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
