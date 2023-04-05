@@ -1,11 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://qlveow25bthq"]
+[gd_scene load_steps=7 format=3 uid="uid://qlveow25bthq"]
 
 [ext_resource type="PackedScene" uid="uid://cht3fq1xc2cov" path="res://addons/twitch/tmi.tscn" id="1_hirkq"]
 [ext_resource type="Script" path="res://addons/twitch/models/credentials.gd" id="2_owytt"]
 [ext_resource type="PackedScene" uid="uid://pg142e3w2fu1" path="res://components/debug/debug_window.tscn" id="2_x60kq"]
-[ext_resource type="PackedScene" uid="uid://d2mvk45vkp64l" path="res://components/bubbles/bubble_stack.tscn" id="3_m4grd"]
-[ext_resource type="PackedScene" uid="uid://dcj1k1861jbkj" path="res://components/chatbox/chatbox.tscn" id="4_1diag"]
-[ext_resource type="PackedScene" uid="uid://chays4n5ylcvm" path="res://components/clock/clock.tscn" id="5_x16ny"]
+[ext_resource type="PackedScene" uid="uid://ccenwry0rkni4" path="res://overlays/foreground_overlays.tscn" id="4_4wwpd"]
+[ext_resource type="PackedScene" uid="uid://bcqqjjenx87m0" path="res://overlays/background_overlays.tscn" id="5_20kdc"]
 
 [sub_resource type="Resource" id="Resource_ecq3x"]
 script = ExtResource("2_owytt")
@@ -23,27 +22,26 @@ credentials = SubResource("Resource_ecq3x")
 autoconnect = true
 include_profile_images = true
 
-[node name="Window" parent="." instance=ExtResource("2_x60kq")]
+[node name="BackgroundOverlays" parent="." instance=ExtResource("5_20kdc")]
 
-[node name="StreamerBubbles" parent="." instance=ExtResource("3_m4grd")]
+[node name="ForegroundOverlays" type="Window" parent="."]
+transparent_bg = true
+initial_position = 2
+title = "Foreground Overlays"
+size = Vector2i(1280, 720)
+unresizable = true
+transparent = true
 
-[node name="Chatbox" parent="." instance=ExtResource("4_1diag")]
-custom_minimum_size = Vector2(300, 0)
-offset_left = -339.0
-offset_top = 74.0
-offset_right = 14.0
-offset_bottom = 74.0
-scale = Vector2(0.8, 0.8)
-size_flags_horizontal = 8
+[node name="ForegroundOverlays" parent="ForegroundOverlays" instance=ExtResource("4_4wwpd")]
 
-[node name="Clock" parent="." instance=ExtResource("5_x16ny")]
-offset_left = 1148.0
-offset_top = 649.0
-offset_right = 1232.0
-offset_bottom = 712.0
+[node name="DebugWidow" parent="." node_paths=PackedStringArray("tmi") instance=ExtResource("2_x60kq")]
+initial_position = 2
+title = "tmi.gd Overlay Debug"
+tmi = NodePath("../Twitch")
 
-[connection signal="Command" from="Twitch/Irc" to="StreamerBubbles" method="_on_irc_command"]
-[connection signal="Command" from="Twitch/Irc" to="Chatbox" method="_on_irc_command"]
-[connection signal="send_bubble" from="Window" to="StreamerBubbles" method="_on_window_send_bubble"]
+[connection signal="credentials_updated" from="Twitch" to="DebugWidow" method="_on_twitch_credentials_updated"]
+[connection signal="Command" from="Twitch/Irc" to="BackgroundOverlays/StreamerBubbles" method="_on_irc_command"]
+[connection signal="Command" from="Twitch/Irc" to="BackgroundOverlays/Chatbox" method="_on_irc_command"]
 
 [editable path="Twitch"]
+[editable path="BackgroundOverlays"]

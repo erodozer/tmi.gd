@@ -34,7 +34,7 @@ func http(command: String):
 	
 	return JSON.parse_string(body.get_string_from_utf8())
 
-func refresh_token():
+func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	if credentials == null:
 		return null
 	
@@ -66,8 +66,13 @@ func refresh_token():
 	
 	var body = JSON.parse_string(response[3].get_string_from_utf8())
 	
-	credentials.token = body.access_token
-	credentials.refresh_token = body.refresh_token
+	var newCredentials = TwitchCredentials.new()
+	newCredentials.bot_id = credentials.bot_id
+	newCredentials.client_id = credentials.client_id
+	newCredentials.client_secret = credentials.client_secret
+	newCredentials.token = body.access_token
+	newCredentials.refresh_token = body.refresh_token
+	return newCredentials
 
 ## prefetch emote images and cache them to local storage
 func load_twitch_emote(emote: String):

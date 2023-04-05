@@ -17,17 +17,31 @@ class_name Tmi
 var _profiles = []
 var _emotes = []
 
-func _ready():
+signal credentials_updated(credentials: TwitchCredentials)
+
+func _set_credentials(credentials: TwitchCredentials):
+	if credentials == null:
+		return
+		
+	self.credentials = credentials
 	irc.credentials = credentials
 	irc.channel = channel
 	twitch_api.credentials = credentials
 	
+	credentials_updated.emit(credentials)
+
+func _ready():
 	if credentials:
-		await twitch_api.refresh_token()
+		_set_credentials(await twitch_api.refresh_token(credentials))
+		
 		var token_refresher = Timer.new()
-		token_refresher.timeout.connect(twitch_api.refresh_token)
+		token_refresher.timeout.connect(
+			func():
+				_set_credentials(await twitch_api.refresh_token(credentials))
+				return
+		)
 		add_child(token_refresher)
-		token_refresher.start(30.0 * 60.0)
-	
+		token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
+		
 	if autoconnect:
 		irc.connect_to_server()

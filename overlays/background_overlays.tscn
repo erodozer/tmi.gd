@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://bcqqjjenx87m0"]
+
+[ext_resource type="PackedScene" uid="uid://d2mvk45vkp64l" path="res://components/bubbles/bubble_stack.tscn" id="1_box3g"]
+[ext_resource type="PackedScene" uid="uid://dcj1k1861jbkj" path="res://components/chatbox/chatbox.tscn" id="2_t6glh"]
+
+[node name="BackgroundOverlays" type="CanvasLayer"]
+
+[node name="StreamerBubbles" parent="." instance=ExtResource("1_box3g")]
+
+[node name="Chatbox" parent="." instance=ExtResource("2_t6glh")]
+custom_minimum_size = Vector2(300, 0)
+offset_left = -329.0
+offset_top = 78.0
+offset_right = 24.0
+offset_bottom = 78.0
+scale = Vector2(0.8, 0.8)
+size_flags_horizontal = 8

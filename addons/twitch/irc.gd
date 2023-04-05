@@ -103,7 +103,8 @@ func _setup_connection():
 	ping_interval.timeout.connect(self._send_ping)
 	add_child(ping_interval)
 	ping_interval.start()
-	print("twitch-gd: we're in")
+	send_message("twitch-gd: we're in hampwnDance")
+	# print()
 
 func _handle_packet(packet: PackedByteArray):
 	# converts a websocket message from the IRC stream into an object

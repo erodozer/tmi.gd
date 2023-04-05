@@ -21,7 +21,7 @@ corner_radius_bottom_left = 4
 [sub_resource type="Theme" id="Theme_vr6yv"]
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_moot8")
 
-[node name="Window" type="Window"]
+[node name="DebugControls" type="Window"]
 snap_2d_transforms_to_pixel = true
 snap_2d_vertices_to_pixel = true
 initial_position = 1
@@ -49,6 +49,86 @@ theme = SubResource("Theme_vr6yv")
 [node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="Twitch Controls" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
+layout_mode = 2
+text = "Twitch Credentials
+"
+
+[node name="HBoxContainer2" type="GridContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="Label5" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Bot Id"
+
+[node name="BotId" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Client Id"
+
+[node name="ClientId" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label2" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Client Secret"
+
+[node name="ClientSecret" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+secret = true
+
+[node name="Label3" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Token"
+
+[node name="AccessToken" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label4" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Refresh Token"
+
+[node name="RefreshToken" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer" type="HFlowContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="GenerateCLICommand" type="Button" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Copy CLI Cmd"
+
+[node name="ForceRefreshToken" type="Button" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Force Refresh"
 
 [node name="BubblesForm" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
