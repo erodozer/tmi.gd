@@ -3,7 +3,7 @@ extends RefCounted
 class RoomStateEvent:
 	var channel_id
 
-const twitch_utils = preload("../utils.gd")
+const twitch_utils = preload("../../../utils.gd")
 
 var irc: TwitchIrc
 	

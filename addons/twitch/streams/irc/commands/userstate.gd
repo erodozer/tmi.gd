@@ -1,6 +1,6 @@
 extends RefCounted
 
-const twitch_utils = preload("../utils.gd")
+const twitch_utils = preload("../../../utils.gd")
 
 var irc: TwitchIrc
 	

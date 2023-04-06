@@ -1,24 +1,44 @@
 [gd_scene load_steps=5 format=3 uid="uid://qlveow25bthq"]
 
-[ext_resource type="PackedScene" uid="uid://cht3fq1xc2cov" path="res://addons/twitch/tmi.tscn" id="1_hirkq"]
+[ext_resource type="PackedScene" uid="uid://cmfr6463oc3to" path="res://addons/twitch/tmi.tscn" id="1_hirkq"]
 [ext_resource type="PackedScene" uid="uid://pg142e3w2fu1" path="res://components/debug/debug_window.tscn" id="2_x60kq"]
 [ext_resource type="PackedScene" uid="uid://ccenwry0rkni4" path="res://overlays/foreground_overlays.tscn" id="4_4wwpd"]
 [ext_resource type="PackedScene" uid="uid://bcqqjjenx87m0" path="res://overlays/background_overlays.tscn" id="5_20kdc"]
 
-[node name="Node" type="Node"]
+[node name="Node" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Twitch" parent="." instance=ExtResource("1_hirkq")]
 channel = "erodozer"
 autoconnect = true
+enable_7tv_emotes = true
 include_profile_images = true
+include_pronouns = true
 
 [node name="BackgroundOverlays" parent="." instance=ExtResource("5_20kdc")]
+layout_mode = 1
+
+[node name="Chatbox" parent="BackgroundOverlays" index="1"]
+anchors_preset = -1
+offset_left = -332.0
+offset_top = 48.0
+offset_right = -32.0
+offset_bottom = -330.0
+grow_vertical = 0
+size_flags_horizontal = 1
+alignment = 2
 
 [node name="ForegroundOverlays" type="Window" parent="."]
 transparent_bg = true
 initial_position = 2
 title = "Foreground Overlays"
 size = Vector2i(1280, 720)
+visible = false
 unresizable = true
 transparent = true
 
@@ -27,11 +47,14 @@ transparent = true
 [node name="DebugWidow" parent="." node_paths=PackedStringArray("tmi") instance=ExtResource("2_x60kq")]
 initial_position = 2
 title = "tmi.gd Overlay Debug"
+size = Vector2i(480, 800)
 tmi = NodePath("../Twitch")
 
 [connection signal="credentials_updated" from="Twitch" to="DebugWidow" method="_on_twitch_credentials_updated"]
 [connection signal="Command" from="Twitch/Irc" to="BackgroundOverlays/StreamerBubbles" method="_on_irc_command"]
 [connection signal="Command" from="Twitch/Irc" to="BackgroundOverlays/Chatbox" method="_on_irc_command"]
+[connection signal="send_bubble" from="DebugWidow" to="BackgroundOverlays/StreamerBubbles" method="_on_window_send_bubble"]
+[connection signal="send_bubble" from="DebugWidow" to="BackgroundOverlays/Chatbox" method="_on_window_send_bubble"]
 
 [editable path="Twitch"]
 [editable path="BackgroundOverlays"]

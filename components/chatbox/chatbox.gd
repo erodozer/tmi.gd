@@ -1,57 +1,81 @@
 extends Control
 
-@export var expire_messages: float = 60.0
+@export var expire_delay: float = 60.0
 @export var message_limit: int = 10
 
 const CACHE_LIMIT = 500
 const cached_emotes = {}
 
-func _on_irc_command(type, event):
-	if type != "message":
-		return
+func _process(_delta):
+	# continuously cleanup
+	if get_child_count() > message_limit:
+		get_child(0).queue_free()
+
+func _spawn_chat(event):
+	if "sender" in event:
+		while event.sender.is_loading:
+			await get_tree().process_frame
 	
 	var text = preload("./chatmessage.tscn").instantiate()
-	add_child(text)
-	
-	text.modulate = Color.TRANSPARENT
-	text.visible_ratio = 1.0
-	text.fit_content = true
 	text.text = event.text
-	await text.finished
-	await get_tree().process_frame
-	text.size = Vector2(text.get_parent().size.x, 9999)
-	await get_tree().process_frame
-	text.size = Vector2(min(text.get_content_width(), text.get_parent().size.x), text.get_content_height())
-	await get_tree().process_frame
-	text.fit_content = false
-	text.modulate = Color.WHITE
-	pivot_offset = Vector2(text.size.x, 0)
-	text.position = Vector2(size.x - text.size.x, 0)
+	text.custom_minimum_size = Vector2(size.x, 16)
+	add_child(text)
+	text.size_flags_horizontal = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END
+	text.custom_minimum_size = Vector2(min(text.get_content_width(), text.size.x), 16)
+	text.pivot_offset = Vector2(text.custom_minimum_size.x, text.size.y)
+	text.set_meta("messageid", event.id)
 	
 	# inject user profile information
-	text.get_node("%Username").text = event.sender.display_name
-	if event.sender.pronouns:
-		text.get_node("%Pronouns").visible = true
-		text.get_node("%Pronouns/Label").text = event.sender.pronouns
-	else:
-		text.get_node("%Pronouns").visible = false
-	var image = event.sender.profile_image
-	if image:
-		text.get_node("%ProfileImage").texture = image
+	if "sender" in event:
+		text.set_meta("senderid", event.sender.id)
+		text.get_node("%Username").text = event.sender.display_name
+		
+		if "pronouns" in event.sender.extra:
+			text.get_node("%Pronouns").visible = true
+			text.get_node("%Pronouns/Label").text = event.sender.extra.pronouns
+		else:
+			text.get_node("%Pronouns").visible = false
+		
+		if "profile_image" in event.sender.extra:
+			var image = event.sender.extra.profile_image
+			if image != null:
+				text.get_node("%ProfileImage").texture = image
 	
 	# spawn in message
-	var t = text.create_tween()
-	t.parallel().tween_property(text, "scale", Vector2(1.0, 1.0), 0.2).from(Vector2(0.0, 0.0))
-		
-	for i in range(get_child_count()-1):
-		var prev_message = get_child(i)
-		var slide_down = prev_message.create_tween()
-		slide_down.tween_property(prev_message, "position", Vector2(0, text.size.y + 100), 0.2).as_relative()
-	
-	get_tree().create_timer(expire_messages).timeout.connect(
-		func():
-			if text or text.is_queued_for_deletion():
-				return
-			text.queue_free(), CONNECT_ONE_SHOT
+	var t = create_tween()
+	t.tween_property(text, "scale", Vector2(1.0, 1.0), 0.2)\
+		.from(Vector2(0.0, 0.0))
+	if expire_delay > 0.0:
+		t.tween_property(text, "modulate", Color.TRANSPARENT, 0.2)\
+			.set_delay(expire_delay)
+		t.tween_property(text, "clip_contents", true, 0.0)
+		t.tween_property(text, "size", Vector2(0.0, 0.0), 0.15)
+		t.tween_callback(text.queue_free)
+			
+func _delete_user_messages(user_id: String):
+	for i in get_children():
+		if i.get_meta("senderid") == user_id:
+			i.queue_free()
+					
+func _delete_message(message_id: String):
+	for i in get_children():
+		if i.get_meta("messageid") == message_id:
+			i.queue_free()
+
+func _on_irc_command(type, event):
+	match type:
+		"message":
+			_spawn_chat(event)
+		"delete-message":
+			_delete_message(event)
+		"delete-user":
+			_delete_user_messages(event)
+
+# debug integration	to send chat messages
+func _on_window_send_bubble(text):
+	_spawn_chat(
+		{
+			"id": "",
+			"text": text
+		}
 	)
-	

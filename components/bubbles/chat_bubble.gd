@@ -4,11 +4,11 @@ extends RichTextLabel
 
 var tween: Tween
 
-func update_text(text: String):
+func update_text(t: String):
 	self.modulate = Color.TRANSPARENT
 	self.visible_ratio = 1.0
 	self.fit_content = true
-	self.text = text
+	self.text = t
 	await self.finished
 	self.size = Vector2(max_width, 9999)
 	await get_tree().process_frame

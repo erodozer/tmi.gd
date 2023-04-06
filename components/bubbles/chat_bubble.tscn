@@ -1,19 +1,27 @@
-[gd_scene load_steps=8 format=3 uid="uid://co1bi1b4sc4tk"]
+[gd_scene load_steps=7 format=3 uid="uid://co1bi1b4sc4tk"]
 
 [ext_resource type="FontVariation" uid="uid://btfqwd4vt7ech" path="res://assets/pixel_font/pixel_font.tres" id="1_22ktb"]
 [ext_resource type="Script" path="res://components/bubbles/chat_bubble.gd" id="2_pwh6c"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_15bex"]
-content_margin_left = 8.0
-content_margin_top = 8.0
-content_margin_right = 8.0
-content_margin_bottom = 8.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fejir"]
 bg_color = Color(0, 0, 0, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 5
+border_width_bottom = 4
 border_color = Color(0.501961, 0.501961, 0.501961, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+expand_margin_left = 15.0
+expand_margin_top = 15.0
+expand_margin_right = 15.0
+expand_margin_bottom = 15.0
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 1
+shadow_offset = Vector2(4, 4)
+anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x6qh8"]
 bg_color = Color(1, 1, 1, 1)
@@ -29,6 +37,7 @@ expand_margin_left = 12.0
 expand_margin_top = 12.0
 expand_margin_right = 12.0
 expand_margin_bottom = 12.0
+anti_aliasing = false
 
 [sub_resource type="Gradient" id="Gradient_8sx45"]
 offsets = PackedFloat32Array(0.00395257, 1)
@@ -38,24 +47,9 @@ colors = PackedColorArray(0, 0.12549, 0.192157, 0.980392, 0.0627451, 0.439216, 0
 gradient = SubResource("Gradient_8sx45")
 fill_to = Vector2(0, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fejir"]
-bg_color = Color(1, 1, 1, 0)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.501961, 0.501961, 0.501961, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-expand_margin_left = 12.0
-expand_margin_top = 12.0
-expand_margin_right = 12.0
-expand_margin_bottom = 12.0
-
 [node name="Message" type="RichTextLabel"]
 unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.513726)
 clip_contents = false
 custom_minimum_size = Vector2(60, 0)
 anchors_preset = 7
@@ -64,8 +58,8 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -30.0
-offset_top = -96.0
 offset_right = 30.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_horizontal = 0
@@ -79,23 +73,19 @@ visible_characters_behavior = 1
 script = ExtResource("2_pwh6c")
 max_width = 350
 
-[node name="Shadow" type="Panel" parent="."]
+[node name="Panel2" type="Panel" parent="."]
 show_behind_parent = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = 3.0
-offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_15bex")
+theme_override_styles/panel = SubResource("StyleBoxFlat_fejir")
 
 [node name="Panel" type="Panel" parent="."]
 show_behind_parent = true
-clip_children = 1
+clip_children = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -117,13 +107,3 @@ offset_bottom = 12.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_27xm8")
-
-[node name="Panel2" type="Panel" parent="."]
-show_behind_parent = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_fejir")

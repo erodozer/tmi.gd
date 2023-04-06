@@ -14,7 +14,6 @@ class_name Tmi
 @onready var irc: TwitchIrc = %Irc
 @onready var twitch_api: TwitchApi = %TwitchAPI
 
-var _profiles = []
 var _emotes = []
 
 signal credentials_updated(credentials: TwitchCredentials)
@@ -29,8 +28,10 @@ func _set_credentials(credentials: TwitchCredentials):
 	twitch_api.credentials = credentials
 	
 	credentials_updated.emit(credentials)
-	
 	TwitchCredentials.save_to_disk(credentials)
+	
+	if irc.is_connected:
+		irc.connect_to_server()
 
 func _ready():
 	if not credentials:

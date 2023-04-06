@@ -117,7 +117,7 @@ static func save_static(filepath: String, buffer: PackedByteArray):
 	return load_static(filepath)
 
 # helper function for doing simple http requests
-static func fetch(n: Node, url: String):
+static func fetch(n: Node, url: String, json = false):
 	var http_request = HTTPRequest.new()
 	n.add_child(http_request)
 	var error = http_request.request(url)
@@ -133,6 +133,6 @@ static func fetch(n: Node, url: String):
 	if status == 404:
 		return null
 	
-	var body = result[3]
+	var body = result[3] as PackedByteArray
 	
-	return body
+	return body if not json else JSON.parse_string(body.get_string_from_utf8())

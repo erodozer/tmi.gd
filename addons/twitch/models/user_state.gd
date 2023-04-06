@@ -1,16 +1,19 @@
 extends RefCounted
 class_name TwitchUserState
 
-const twitch_utils = preload("../utils.gd")
-
 var id: String
 var display_name: String
 var badges: Array
-var profile_image:
-	get = _get_profile_image
-var pronouns: String
 var expires_at: int
 
-func _get_profile_image() -> Texture2D:
-	var path = "user://profile_images/%s.png" % id
-	return twitch_utils.load_static(path)
+var extra: Dictionary = {}
+
+# flags to indicate that the profile isn't done loading
+# used by any async APIs that extend the profile
+var loading: Dictionary = {}
+
+var is_loading:
+	get = _is_loading
+
+func _is_loading():
+	return len(loading) > 0
