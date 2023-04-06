@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://ccenwry0rkni4"]
+[gd_scene load_steps=3 format=3 uid="uid://ccenwry0rkni4"]
 
 [ext_resource type="PackedScene" uid="uid://chays4n5ylcvm" path="res://components/clock/clock.tscn" id="1_rcgxh"]
+[ext_resource type="PackedScene" uid="uid://d2mvk45vkp64l" path="res://components/bubbles/bubble_stack.tscn" id="2_jwnk4"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
@@ -25,3 +26,6 @@ offset_right = -25.0
 offset_bottom = -30.0
 grow_horizontal = 0
 grow_vertical = 0
+
+[node name="StreamerBubbles" parent="Frame" instance=ExtResource("2_jwnk4")]
+layout_mode = 1

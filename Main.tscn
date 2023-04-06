@@ -23,7 +23,7 @@ include_pronouns = true
 [node name="BackgroundOverlays" parent="." instance=ExtResource("5_20kdc")]
 layout_mode = 1
 
-[node name="Chatbox" parent="BackgroundOverlays" index="1"]
+[node name="Chatbox" parent="BackgroundOverlays" index="0"]
 anchors_preset = -1
 offset_left = -332.0
 offset_top = 48.0
@@ -44,17 +44,18 @@ transparent = true
 
 [node name="ForegroundOverlays" parent="ForegroundOverlays" instance=ExtResource("4_4wwpd")]
 
-[node name="DebugWidow" parent="." node_paths=PackedStringArray("tmi") instance=ExtResource("2_x60kq")]
+[node name="DebugWindow" parent="." node_paths=PackedStringArray("tmi") instance=ExtResource("2_x60kq")]
 initial_position = 2
 title = "tmi.gd Overlay Debug"
 size = Vector2i(480, 800)
 tmi = NodePath("../Twitch")
 
-[connection signal="credentials_updated" from="Twitch" to="DebugWidow" method="_on_twitch_credentials_updated"]
-[connection signal="Command" from="Twitch/Irc" to="BackgroundOverlays/StreamerBubbles" method="_on_irc_command"]
+[connection signal="credentials_updated" from="Twitch" to="DebugWindow" method="_on_twitch_credentials_updated"]
 [connection signal="Command" from="Twitch/Irc" to="BackgroundOverlays/Chatbox" method="_on_irc_command"]
-[connection signal="send_bubble" from="DebugWidow" to="BackgroundOverlays/StreamerBubbles" method="_on_window_send_bubble"]
-[connection signal="send_bubble" from="DebugWidow" to="BackgroundOverlays/Chatbox" method="_on_window_send_bubble"]
+[connection signal="Command" from="Twitch/Irc" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_irc_command"]
+[connection signal="send_bubble" from="DebugWindow" to="BackgroundOverlays/Chatbox" method="_on_window_send_bubble"]
+[connection signal="send_bubble" from="DebugWindow" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_window_send_bubble"]
 
 [editable path="Twitch"]
 [editable path="BackgroundOverlays"]
+[editable path="ForegroundOverlays/ForegroundOverlays"]
