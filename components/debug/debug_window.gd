@@ -170,15 +170,9 @@ func _ready():
 		var path = await file_dialog.file_selected
 		
 		var buffer = FileAccess.get_file_as_bytes(path)
-		var tex = preload("res://addons/twitch/utils.gd").save_animated(
+		preload("res://addons/twitch/utils.gd").save_animated(
 			path,
 			buffer
-		)
-		
-		ResourceSaver.save(
-			tex,
-			path.substr(0, path.rfind(".")) + "/tex.tres",
-			ResourceSaver.SaverFlags.FLAG_RELATIVE_PATHS
 		)
 	)
 	

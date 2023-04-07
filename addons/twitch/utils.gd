@@ -14,44 +14,17 @@ static func http_headers(headers: PackedStringArray):
 ## because I'm too lazy to add gif decoding to godot, this depends
 ## on the user having ffmpeg installed to their Path for us to leverage
 static func load_animated(path: String) -> AnimatedTexture:
-	var basename = path.rsplit(".")[0]
-	var folder_path = "%s/" % basename
-	
-	if ResourceLoader.has_cached(path):
+	if ResourceLoader.has_cached(path + ".res"):
 		return load(path)
 	
-	if not DirAccess.dir_exists_absolute(basename):
+	if not FileAccess.file_exists(path):
 		return null
-		
-	# load frames into AnimatedTexture
-	var tex = AnimatedTexture.new()
-	var frames = DirAccess.get_files_at(folder_path)
-	if len(frames) == 0:
-		return null
-		
-	tex.frames = len(frames)
-	for i in frames:
-		var filepath = "%s/%s" % [basename, i]
-		var image = Image.new()
-		var error = image.load(filepath)
-		if error != OK:
-			return null
-		var frame = ImageTexture.create_from_image(image)
-		frame.take_over_path(filepath)
-		var data = i.split("_")
-		var idx = data[0].to_int()
-		var delay = data[1].to_int() / 1000.0
-		tex.set_frame_duration(idx, delay) # ffmpeg defaults to 25fps
-		tex.set_frame_texture(idx, frame)
-		idx += 1
-		
-	tex.take_over_path(path)
 	
-	return tex
+	# load frames into AnimatedTexture
+	return ResourceLoader.load(path + ".res") as AnimatedTexture
 	
 static func save_animated(path: String, buffer: PackedByteArray) -> AnimatedTexture:
-	var basename = path.rsplit(".")[0]
-	var folder_path = "%s/" % basename
+	var folder_path = "user://.tmp_%d/" % Time.get_unix_time_from_system()
 	
 	var f = FileAccess.open(path, FileAccess.WRITE)
 	f.store_buffer(buffer)
@@ -75,22 +48,45 @@ static func save_animated(path: String, buffer: PackedByteArray) -> AnimatedText
 		"convert",
 		"-coalesce",
 		ProjectSettings.globalize_path(path),
-		ProjectSettings.globalize_path(basename + "/%02d.png"),
+		ProjectSettings.globalize_path(folder_path + "%02d.png"),
 	], out, true)
 	assert(code == 0, "unable to convert: %s" % "\n".join(out))
 	
 	# rename files to include their delays
-	for i in DirAccess.get_files_at(folder_path):
-		var frame = i.substr(0, i.rfind(".")).to_int()
-		var delay = frame_delays[frame]
-		DirAccess.rename_absolute(
-			"%s/%s" % [basename, i],
-			"%s/%02d_%04d.png" % [basename, frame, delay]
-		)
+	var tex = AnimatedTexture.new()
+	var frames = DirAccess.get_files_at(folder_path)
+	if len(frames) == 0:
+		return null
+	
+	tex.frames = len(frames)
+	for filepath in frames:
+		var idx = filepath.substr(0, filepath.rfind(".")).to_int()
+		var delay = frame_delays[idx] / 1000.0
+	
+		var image = Image.new()
+		var error = image.load(folder_path + filepath)
+		if error != OK:
+			return null
+		
+		var frame = ImageTexture.create_from_image(image)
+		# frame.take_over_path(filepath)
+		tex.set_frame_duration(idx, delay) # ffmpeg defaults to 25fps
+		tex.set_frame_texture(idx, frame)
+	
+	tex.take_over_path(path)
+	
+	# delete the temp directory
+	OS.move_to_trash(ProjectSettings.globalize_path(folder_path))
+	
+	ResourceSaver.save(
+		tex,
+		path + ".res",
+		ResourceSaver.SaverFlags.FLAG_COMPRESS
+	)
 	
 	print("animated image saved: %s" % path)
 	
-	return load_animated(path)
+	return tex
 	
 static func load_static(filepath: String) -> Texture2D:
 	if ResourceLoader.has_cached(filepath):

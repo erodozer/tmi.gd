@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://b4bwtfne1effe"]
 
 [ext_resource type="Script" path="res://components/alerts/redeem_yippee.gd" id="1_6tkfh"]
-[ext_resource type="Texture2D" uid="uid://sfkp76tapyfo" path="res://components/alerts/nuggie/nuggie.tres" id="2_q5cyn"]
+[ext_resource type="Texture2D" uid="uid://cfp1f1hp231ed" path="res://components/alerts/nuggie.gif.res" id="2_uartq"]
 [ext_resource type="FontVariation" uid="uid://btfqwd4vt7ech" path="res://assets/pixel_font/pixel_font.tres" id="14_xwqmv"]
 
 [sub_resource type="Animation" id="Animation_m61g3"]
@@ -93,7 +93,7 @@ offset_left = -57.5
 offset_right = 17.5
 offset_bottom = 73.0
 grow_horizontal = 2
-texture = ExtResource("2_q5cyn")
+texture = ExtResource("2_uartq")
 expand_mode = 1
 stretch_mode = 4
 
