@@ -13,7 +13,7 @@ static func http_headers(headers: PackedStringArray):
 ## gifs are cached to disk as a sequence of pngs
 ## because I'm too lazy to add gif decoding to godot, this depends
 ## on the user having ffmpeg installed to their Path for us to leverage
-static func load_animated(path: String):
+static func load_animated(path: String) -> AnimatedTexture:
 	var basename = path.rsplit(".")[0]
 	var folder_path = "%s/" % basename
 	
@@ -37,6 +37,7 @@ static func load_animated(path: String):
 		if error != OK:
 			return null
 		var frame = ImageTexture.create_from_image(image)
+		frame.take_over_path(filepath)
 		var data = i.split("_")
 		var idx = data[0].to_int()
 		var delay = data[1].to_int() / 1000.0
@@ -45,9 +46,10 @@ static func load_animated(path: String):
 		idx += 1
 		
 	tex.take_over_path(path)
+	
 	return tex
 	
-static func save_animated(path: String, buffer: PackedByteArray):
+static func save_animated(path: String, buffer: PackedByteArray) -> AnimatedTexture:
 	var basename = path.rsplit(".")[0]
 	var folder_path = "%s/" % basename
 	
@@ -90,7 +92,7 @@ static func save_animated(path: String, buffer: PackedByteArray):
 	
 	return load_animated(path)
 	
-static func load_static(filepath: String):
+static func load_static(filepath: String) -> Texture2D:
 	if ResourceLoader.has_cached(filepath):
 		return load(filepath)
 		
@@ -105,7 +107,7 @@ static func load_static(filepath: String):
 	
 	return null
 	
-static func save_static(filepath: String, buffer: PackedByteArray):
+static func save_static(filepath: String, buffer: PackedByteArray) -> Texture2D:
 	var image = Image.new()
 	var error = image.load_png_from_buffer(buffer)
 	if error != OK:

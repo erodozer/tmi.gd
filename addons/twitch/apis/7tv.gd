@@ -7,7 +7,7 @@ func _ready():
 	var tmi = get_parent()
 
 	await tmi.ready
-	tmi.irc.Command.connect(_on_room_state)
+	tmi.command.connect(_on_room_state)
 
 func _on_room_state(type: String, evt):
 	if type != "roomstate":

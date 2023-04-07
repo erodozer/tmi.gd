@@ -1,0 +1,23 @@
+[gd_resource type="AnimatedTexture" load_steps=7 format=3 uid="uid://sfkp76tapyfo"]
+
+[ext_resource type="Texture2D" uid="uid://c0qn66gx8oyot" path="res://components/alerts/nuggie/nuggie_0.png" id="1_op6dn"]
+[ext_resource type="Texture2D" uid="uid://cmxbraibixgtn" path="res://components/alerts/nuggie/nuggie_1.png" id="2_gfa2o"]
+[ext_resource type="Texture2D" uid="uid://15elx8njmvwn" path="res://components/alerts/nuggie/nuggie_2.png" id="3_0tn14"]
+[ext_resource type="Texture2D" uid="uid://c2fvi2iay40dh" path="res://components/alerts/nuggie/nuggie_3.png" id="4_m8rhd"]
+[ext_resource type="Texture2D" uid="uid://c0gmgtswhib8f" path="res://components/alerts/nuggie/nuggie_4.png" id="5_5ni3l"]
+[ext_resource type="Texture2D" uid="uid://c7k6lk7kp1hmt" path="res://components/alerts/nuggie/nuggie_5.png" id="6_l8o2b"]
+
+[resource]
+frames = 6
+frame_0/texture = ExtResource("1_op6dn")
+frame_0/duration = 0.1
+frame_1/texture = ExtResource("2_gfa2o")
+frame_1/duration = 0.1
+frame_2/texture = ExtResource("3_0tn14")
+frame_2/duration = 0.1
+frame_3/texture = ExtResource("4_m8rhd")
+frame_3/duration = 0.1
+frame_4/texture = ExtResource("5_5ni3l")
+frame_4/duration = 0.1
+frame_5/texture = ExtResource("6_l8o2b")
+frame_5/duration = 0.1

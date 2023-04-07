@@ -1,20 +1,15 @@
 extends RefCounted
 
 var PRIVMSG_PARSER: RegEx
-var tmi: Tmi
 
-func _init(tmi: Tmi):
-	await tmi.ready
+func _init():
 	PRIVMSG_PARSER = RegEx.new()
 	PRIVMSG_PARSER.compile("#(?<channel>[^\\s]*)\\s:(?<message>.*)")
-	
-	tmi.irc.IrcMessageReceived.connect(handle_message)
-	self.tmi = tmi
 	
 	if not DirAccess.dir_exists_absolute("user://emotes"):
 		DirAccess.make_dir_recursive_absolute("user://emotes")
 	
-func _render_message(message: String, emotes: Dictionary = {}):
+func _render_message(message: String, emotes: Dictionary, tmi: Tmi):
 	var stringReplacements = []
 	
 	# iterate of emotes to access ids and positions
@@ -48,7 +43,7 @@ func _render_message(message: String, emotes: Dictionary = {}):
 		message
 	);
 	
-func handle_message(ircCommand: TwitchIrcCommand):
+func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	if ircCommand.command != "PRIVMSG":
 		return
 				
@@ -92,12 +87,12 @@ func handle_message(ircCommand: TwitchIrcCommand):
 	
 	var profile = await tmi.twitch_api.fetch_user(ircCommand.metadata["user-id"])
 		
-	tmi.irc.Command.emit(
+	tmi.command.emit(
 		"message",
 		preload("../../../models/chat_message.gd").new(
 			ircCommand.metadata['id'],
 			result.get_string("channel"),
-			_render_message(message, e),
+			_render_message(message, e, tmi),
 			message,
 			ircCommand.metadata,
 			profile,

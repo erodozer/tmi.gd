@@ -2,6 +2,8 @@ extends Control
 
 @export var expire_delay: float = 60.0
 @export var message_limit: int = 10
+@export var ignore_users: Array[String] = []
+@export var ignore_commands: Array[String] = []
 
 const CACHE_LIMIT = 500
 const cached_emotes = {}
@@ -12,7 +14,17 @@ func _process(_delta):
 		get_child(0).queue_free()
 
 func _spawn_chat(event):
+	# do not render messages that are bot commands
+	for i in ignore_commands:
+		if event.text.begins_with(i):
+			return
+	
 	if "sender" in event:
+		# do not render messages from ignored users
+		# required for filtering out known bot accounts in your channel
+		if event.sender.display_name in ignore_users:
+			return
+		
 		while event.sender.is_loading:
 			await get_tree().process_frame
 	
@@ -62,15 +74,6 @@ func _delete_message(message_id: String):
 		if i.get_meta("messageid") == message_id:
 			i.queue_free()
 
-func _on_irc_command(type, event):
-	match type:
-		"message":
-			_spawn_chat(event)
-		"delete-message":
-			_delete_message(event)
-		"delete-user":
-			_delete_user_messages(event)
-
 # debug integration	to send chat messages
 func _on_window_send_bubble(text):
 	_spawn_chat(
@@ -79,3 +82,32 @@ func _on_window_send_bubble(text):
 			"text": text
 		}
 	)
+
+func _on_twitch_command(type, event):
+	match type:
+		"message":
+			_spawn_chat(event)
+		"delete-message":
+			_delete_message(event)
+		"delete-user":
+			_delete_user_messages(event)
+
+func _on_debug_window_update_ignore_users_list(users: Array):
+	ignore_users.clear()
+	ignore_users.append_array(users)
+
+func _on_debug_window_update_ignore_commands_list(command_prefixes: Array):
+	ignore_commands.clear()
+	ignore_commands.append_array(command_prefixes)
+
+
+
+
+
+
+
+
+
+
+
+

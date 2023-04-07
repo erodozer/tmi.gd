@@ -1,36 +1,24 @@
 class_name TwitchIrc
-extends Node
+extends TwitchEventStream
 
-const TWITCH_IRC_ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
 
-var channel: String
-var credentials: TwitchCredentials
+const ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
+
 var socket: WebSocketPeer
 
-signal IrcMessageReceived(command: TwitchIrcCommand)
-signal Connected(channel)
-signal Authenticated(success)
-signal Request(acknowledge)
+signal message_received(command: TwitchIrcCommand)
+signal socket_connected(channel)
+signal authenticated(success)
+signal request(acknowledge)
 
-# specific command types
-signal Command(type, event)
-
-enum ConnectionState {
-	NOT_STARTED,
-	STARTING,
-	STARTED,
-	FAILED
-}
-	
-var connection_state = ConnectionState.NOT_STARTED
 var COMMAND_REGEX: RegEx
 
-@onready var commands = [
-	await preload("./commands/privmsg.gd").new(get_parent()),
-	await preload("./commands/deletemsg.gd").new(get_parent()),
-	await preload("./commands/deleteuser.gd").new(get_parent()),
-	await preload("./commands/roomstate.gd").new(get_parent()),
-	await preload("./commands/userstate.gd").new(get_parent()),
+@onready var commands:  = [
+	await preload("./commands/privmsg.gd").new(),
+	await preload("./commands/deletemsg.gd").new(),
+	await preload("./commands/deleteuser.gd").new(),
+	await preload("./commands/roomstate.gd").new(),
+	await preload("./commands/userstate.gd").new(),
 ]
 
 func _init():
@@ -38,9 +26,17 @@ func _init():
 	COMMAND_REGEX = RegEx.new()
 	COMMAND_REGEX.compile("(@(?<metadata>.*)\\s)?(:(.*!.*@)?((?<username>.*)\\.)?tmi\\.twitch\\.tv\\s)(?<command>(\\S*))\\s*(?<message>.*)")
 	
-	IrcMessageReceived.connect(self.handle_command)
+	message_received.connect(handle_message)
 	
-func connect_to_server():
+func _ready():
+	for c in commands:
+		message_received.connect(c.handle_message.bind(get_parent()))
+	
+func connect_to_server(soft = false):
+	# do not start up the socket on soft connects
+	if soft and socket == null:
+		return
+	
 	if socket:
 		socket.close()
 		socket = null
@@ -48,7 +44,7 @@ func connect_to_server():
 	connection_state = ConnectionState.NOT_STARTED
 	socket = WebSocketPeer.new()
 	# create websocket connection to twitch irc endpoitn
-	socket.connect_to_url(TWITCH_IRC_ENDPOINT)
+	socket.connect_to_url(ENDPOINT)
 	
 func _process(_delta):
 	if socket == null:
@@ -82,6 +78,12 @@ func _login_with_credentials(credentials: TwitchCredentials):
 func _setup_connection():
 	connection_state = ConnectionState.STARTING
 	
+	if credentials.channel == "":
+		push_error("no channel to connect to")
+		connection_state = ConnectionState.FAILED
+		socket.close()
+		return
+	
 	# this requests for this client to receive additional twitch IRC specific commands
 	# in its command stream.
 	var err = socket.send_text("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
@@ -92,7 +94,7 @@ func _setup_connection():
 		return
 		
 	# wait for cap req acknowledgement before proceeding
-	var acknowledged = await Request
+	var acknowledged = await request
 	if not acknowledged:
 		push_error("capability request denied")
 		connection_state = ConnectionState.FAILED
@@ -102,8 +104,8 @@ func _setup_connection():
 	# set authentication of the integration so that the bot
 	# may assume an identity within chat
 	
-	_login_with_credentials(credentials if credentials else TwitchCredentials.get_fallback_credentials())
-	var authed = await Authenticated
+	_login_with_credentials(credentials if credentials.token != "" else TwitchCredentials.get_fallback_credentials())
+	var authed = await authenticated
 	if not authed:
 		push_error("Authentication failed")
 		connection_state = ConnectionState.FAILED
@@ -111,7 +113,7 @@ func _setup_connection():
 		return
 
 	# join channels to listen to
-	socket.send_text("JOIN #%s" % channel)
+	socket.send_text("JOIN #%s" % credentials.channel)
 	
 	# begin a ping-pong with the server to keep the bot alive
 	var ping_interval = Timer.new()
@@ -131,7 +133,7 @@ func _handle_packet(packet: PackedByteArray):
 	for message in event.strip_edges().split("\n"):
 		var command = _parse_twitch_message(message)
 		if command:
-			IrcMessageReceived.emit(command)
+			message_received.emit(command)
 	
 ## Keeps the connection alive by sending PING requests to the server
 func _send_ping():
@@ -147,9 +149,9 @@ func _send_pong():
 ## Sends a PRIVMSG to a specified channel.
 ## If the channel is not specified, we default to using the first channel that 
 ## we are connected to
-func send_message(text, channel = null):
+func send_message(text):
 	socket.send_text("PRIVMSG #%s :%s" % [
-		self.channel if channel == null else channel,
+		credentials.channel,
 		text
 	])
 
@@ -180,15 +182,13 @@ func _parse_twitch_message(rawMessage: String):
 	
 	return command
 	
-func handle_command(ircCommand: TwitchIrcCommand):
+func handle_message(ircCommand: TwitchIrcCommand):
 	match ircCommand.command:
 		"CAP":
-			Request.emit(ircCommand.message.begins_with("* ACK"))
+			request.emit(ircCommand.message.begins_with("* ACK"))
 		"NOTICE":
-			Authenticated.emit(false)
+			authenticated.emit(false)
 		"001":
-			Authenticated.emit(true)
+			authenticated.emit(true)
 		"PING":
 			_send_pong()
-		_:
-			pass

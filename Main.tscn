@@ -14,8 +14,6 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Twitch" parent="." instance=ExtResource("1_hirkq")]
-channel = "erodozer"
-autoconnect = true
 enable_7tv_emotes = true
 include_profile_images = true
 include_pronouns = true
@@ -38,7 +36,6 @@ transparent_bg = true
 initial_position = 2
 title = "Foreground Overlays"
 size = Vector2i(1280, 720)
-visible = false
 unresizable = true
 transparent = true
 
@@ -50,12 +47,14 @@ title = "tmi.gd Overlay Debug"
 size = Vector2i(480, 800)
 tmi = NodePath("../Twitch")
 
-[connection signal="credentials_updated" from="Twitch" to="DebugWindow" method="_on_twitch_credentials_updated"]
-[connection signal="Command" from="Twitch/Irc" to="BackgroundOverlays/Chatbox" method="_on_irc_command"]
-[connection signal="Command" from="Twitch/Irc" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_irc_command"]
-[connection signal="send_bubble" from="DebugWindow" to="BackgroundOverlays/Chatbox" method="_on_window_send_bubble"]
+[connection signal="command" from="Twitch" to="BackgroundOverlays/Chatbox" method="_on_twitch_command"]
+[connection signal="command" from="Twitch" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_twitch_command"]
+[connection signal="command" from="Twitch" to="ForegroundOverlays/ForegroundOverlays/Frame/RedeemYippee" method="_on_twitch_command"]
+[connection signal="connection_status_changed" from="Twitch" to="DebugWindow" method="_on_twitch_connection_status_changed"]
+[connection signal="clear_bubbles" from="DebugWindow" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_debug_window_clear_bubbles"]
 [connection signal="send_bubble" from="DebugWindow" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_window_send_bubble"]
+[connection signal="update_ignore_commands_list" from="DebugWindow" to="BackgroundOverlays/Chatbox" method="_on_debug_window_update_ignore_commands_list"]
+[connection signal="update_ignore_users_list" from="DebugWindow" to="BackgroundOverlays/Chatbox" method="_on_debug_window_update_ignore_users_list"]
 
-[editable path="Twitch"]
 [editable path="BackgroundOverlays"]
 [editable path="ForegroundOverlays/ForegroundOverlays"]

@@ -18,7 +18,7 @@ func _ready():
 				await fetch_profile_image(profile)
 	)
 
-func http(command: String):
+func http(command: String, credentials = self.credentials):
 	if credentials == null:
 		return null
 	
@@ -50,6 +50,8 @@ func http(command: String):
 func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	if credentials == null:
 		return null
+	if credentials.channel == "":
+		return null
 	
 	var req = HTTPRequest.new()
 	add_child(req)
@@ -80,11 +82,19 @@ func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	var body = JSON.parse_string(response[3].get_string_from_utf8())
 	
 	var newCredentials = TwitchCredentials.new()
-	newCredentials.bot_id = credentials.bot_id
+	newCredentials.channel = credentials.channel
 	newCredentials.client_id = credentials.client_id
 	newCredentials.client_secret = credentials.client_secret
 	newCredentials.token = body.access_token
 	newCredentials.refresh_token = body.refresh_token
+	
+	# get user info for token provider
+	var user = await http("users", newCredentials)
+	newCredentials.user_id = user.data[0].id
+	newCredentials.bot_id = user.data[0].login
+	var broadcaster = await http("users?login=%s" % newCredentials.channel, newCredentials)
+	newCredentials.broadcaster_user_id = broadcaster.data[0].id
+	
 	return newCredentials
 
 ## prefetch emote images and cache them to local storage
@@ -138,7 +148,7 @@ func fetch_user(user_id: String):
 	var profile = _profiles.filter(func (p): return p.id == user_id).front()
 	if profile:
 		if profile.expires_at < Time.get_unix_time_from_system():
-			_profiles.remove(profile)
+			_profiles.remove_at(_profiles.find(profile))
 			profile = null
 		else:
 			return profile

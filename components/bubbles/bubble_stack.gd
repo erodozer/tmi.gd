@@ -8,15 +8,6 @@ extends Control
 func _on_window_send_bubble(text):
 	_push_to_stack(text)
 
-func _on_irc_command(type, event):
-	if type != "message":
-		return
-		
-	if event.tags['display-name'] != broadcaster_id:
-		return
-
-	_push_to_stack(event.text)
-
 func _push_to_stack(text):
 	var bubble = preload("./chat_bubble.tscn").instantiate()
 	add_child(bubble)
@@ -50,3 +41,15 @@ func _push_to_stack(text):
 				prev_message, "modulate", Color(0.0,0.0,0.0,-0.25), .2
 			).as_relative()
 		
+func _on_debug_window_clear_bubbles():
+	for i in get_children():
+		i.queue_free()
+
+func _on_twitch_command(type, event):
+	if type != "message":
+		return
+		
+	if event.tags['display-name'] != broadcaster_id:
+		return
+
+	_push_to_stack(event.text)

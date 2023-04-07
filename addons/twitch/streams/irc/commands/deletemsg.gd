@@ -3,14 +3,12 @@ extends RefCounted
 const twitch_utils = preload("../../../utils.gd")
 
 var PRIVMSG_PARSER: RegEx
-var tmi: Tmi
 
-func _init(tmi: Tmi):
-	await tmi.ready
+func _init():
 	PRIVMSG_PARSER = RegEx.new()
 	PRIVMSG_PARSER.compile("#(?<channel>[^\\s]*)\\s:/delete (?<messageid>.*)")
 	
-func handle_message(ircCommand: TwitchIrcCommand):
+func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	if ircCommand.command != "PRIVMSG":
 		return
 		
@@ -49,7 +47,7 @@ func handle_message(ircCommand: TwitchIrcCommand):
 		
 	ircCommand.metadata.emotes = e
 			
-	tmi.irc.Command.emit(
+	tmi.command.emit(
 		"delete-message",
 		result.get_string("messageid"),
 	)

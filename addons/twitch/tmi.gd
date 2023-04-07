@@ -1,9 +1,7 @@
 extends Node
 class_name Tmi
 
-@export var channel: String
 @export var credentials: TwitchCredentials
-@export var autoconnect: bool = false
 
 @export_category("Features")
 @export var enable_bttv_emotes = false
@@ -16,27 +14,28 @@ class_name Tmi
 
 var _emotes = []
 
+enum ConnectionStatus {
+	NOT_CONNECTED,
+	PARTIAL,
+	CONNECTED
+}
+
 signal credentials_updated(credentials: TwitchCredentials)
+signal command(type: String, event)
+signal connection_status_changed(status: ConnectionStatus)
 
 func _set_credentials(credentials: TwitchCredentials):
 	if credentials == null:
 		return
 		
 	self.credentials = credentials
-	irc.credentials = credentials
-	irc.channel = channel
 	twitch_api.credentials = credentials
 	
 	credentials_updated.emit(credentials)
-	TwitchCredentials.save_to_disk(credentials)
 	
-	if irc.is_connected:
-		irc.connect_to_server()
+	start(true)
 
 func _ready():
-	if not credentials:
-		credentials = TwitchCredentials.load_from_disk()
-	
 	if credentials:
 		_set_credentials(await twitch_api.refresh_token(credentials))
 		
@@ -49,5 +48,33 @@ func _ready():
 		add_child(token_refresher)
 		token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
 		
-	if autoconnect:
-		irc.connect_to_server()
+	var prev_connection_state = ConnectionStatus.NOT_CONNECTED
+	var connection_poller = Timer.new()
+	connection_poller.timeout.connect(
+		func():
+			var curr_connection_state = connection_state()
+			if prev_connection_state != curr_connection_state:
+				connection_status_changed.emit(curr_connection_state)
+			prev_connection_state = curr_connection_state
+	)
+	add_child(connection_poller)
+	connection_poller.start(1.0)
+		
+func start(soft = false):
+	for i in get_children():
+		if i is TwitchEventStream:
+			i.credentials = credentials
+			i.connect_to_server(soft)
+
+func connection_state() -> ConnectionStatus:
+	var streams = get_children().filter(func (i): return i is TwitchEventStream)
+	
+	var states = streams.map(func (i): return i.connection_state)\
+		.filter(func (i): return i == TwitchEventStream.ConnectionState.STARTED)
+		
+	if len(states) == len(streams):
+		return ConnectionStatus.CONNECTED
+	elif len(states) > 0:
+		return ConnectionStatus.PARTIAL
+	
+	return ConnectionStatus.NOT_CONNECTED

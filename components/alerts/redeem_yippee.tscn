@@ -1,0 +1,113 @@
+[gd_scene load_steps=7 format=3 uid="uid://b4bwtfne1effe"]
+
+[ext_resource type="Script" path="res://components/alerts/redeem_yippee.gd" id="1_6tkfh"]
+[ext_resource type="Texture2D" uid="uid://sfkp76tapyfo" path="res://components/alerts/nuggie/nuggie.tres" id="2_q5cyn"]
+[ext_resource type="FontVariation" uid="uid://btfqwd4vt7ech" path="res://assets/pixel_font/pixel_font.tres" id="14_xwqmv"]
+
+[sub_resource type="Animation" id="Animation_m61g3"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Anchor:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_04og8"]
+resource_name = "show"
+length = 8.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6, 7.5, 8),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, 40), Vector2(0, 40), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Anchor:modulate")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.6, 7.5, 8),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_gqrug"]
+_data = {
+"RESET": SubResource("Animation_m61g3"),
+"show": SubResource("Animation_04og8")
+}
+
+[node name="RedeemYippee" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_6tkfh")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+unique_name_in_owner = true
+libraries = {
+"": SubResource("AnimationLibrary_gqrug")
+}
+
+[node name="Anchor" type="Control" parent="."]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 39.9999
+scale = Vector2(2, 2)
+
+[node name="Animation" type="TextureRect" parent="Anchor"]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -57.5
+offset_right = 17.5
+offset_bottom = 73.0
+grow_horizontal = 2
+texture = ExtResource("2_q5cyn")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Label" type="Label" parent="Anchor"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = -38.0
+offset_top = 62.0
+offset_right = 40.0
+offset_bottom = 88.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("14_xwqmv")
+theme_override_font_sizes/font_size = 12
+text = "Yippee"
+horizontal_alignment = 1

@@ -1,6 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://pg142e3w2fu1"]
+[gd_scene load_steps=5 format=3 uid="uid://pg142e3w2fu1"]
 
 [ext_resource type="Script" path="res://components/debug/debug_window.gd" id="1_tjxpa"]
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_jryg6"]
+color = Color(0, 0, 0, 0.498039)
+thickness = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_moot8"]
 content_margin_left = 12.0
@@ -19,6 +23,8 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="Theme" id="Theme_vr6yv"]
+HSeparator/constants/separation = 32
+HSeparator/styles/separator = SubResource("StyleBoxLine_jryg6")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_moot8")
 
 [node name="DebugControls" type="Window"]
@@ -56,25 +62,64 @@ layout_mode = 2
 [node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
+[node name="HBoxContainer4" type="HBoxContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
 layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Twitch Credentials
 "
+
+[node name="TokenStatus" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer4"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Invalid"
 
 [node name="HBoxContainer2" type="GridContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 8
+theme_override_constants/v_separation = 11
 columns = 2
+
+[node name="Label7" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Channel"
+
+[node name="ChannelName" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Label5" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
-text = "Bot Id"
+text = "Bot Username"
 
 [node name="BotId" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+editable = false
+
+[node name="Label6" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Token User Id"
+
+[node name="UserId" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="Label8" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Broadcaster Id"
+
+[node name="BroadcasterId" type="LineEdit" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
 
 [node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
@@ -103,6 +148,7 @@ text = "Token"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+secret = true
 
 [node name="Label4" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
@@ -112,6 +158,7 @@ text = "Refresh Token"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+secret = true
 
 [node name="HBoxContainer" type="HFlowContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
 layout_mode = 2
@@ -129,6 +176,35 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 text = "Force Refresh"
+
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HFlowContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="Autoconnect" type="CheckButton" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "Autoconnect"
+flat = true
+alignment = 2
+
+[node name="ConnectionStatus" type="Label" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Not Connected"
+horizontal_alignment = 1
+
+[node name="Reconnect" type="Button" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Reconnect"
 
 [node name="BubblesForm" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -169,3 +245,81 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 text = "Lorem Ipsum"
+
+[node name="Chat Controls" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/Chat Controls"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer"]
+layout_mode = 2
+text = "Chat Controls"
+
+[node name="Label2" type="Label" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer"]
+layout_mode = 2
+text = "Hide Users"
+
+[node name="ExcludeUsers" type="TextEdit" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "List of users to exclude from the chat box rendering.  Usernames are space separated"
+text = "streamelements"
+scroll_fit_content_height = true
+
+[node name="HBoxContainer" type="HFlowContainer" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="ClearBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Clear"
+
+[node name="SendBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Send"
+
+[node name="DebugBubbleChat" type="Button" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Lorem Ipsum"
+
+[node name="Label3" type="Label" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer"]
+layout_mode = 2
+text = "Ignore Commands"
+
+[node name="ExcludeCommands" type="LineEdit" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Ignore bot commands starting with any symbol or word.  This list is space separated"
+text = "!"
+
+[node name="Gif Helper" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/Gif Helper"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Gif Helper/VBoxContainer"]
+layout_mode = 2
+text = "Process Animated Image"
+
+[node name="FileDialog" type="FileDialog" parent="ScrollContainer/VBoxContainer/Gif Helper/VBoxContainer"]
+unique_name_in_owner = true
+initial_position = 2
+title = "Open a File"
+size = Vector2i(600, 400)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.gif", "*.webp")
+
+[node name="FileButton" type="Button" parent="ScrollContainer/VBoxContainer/Gif Helper/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Open File..."

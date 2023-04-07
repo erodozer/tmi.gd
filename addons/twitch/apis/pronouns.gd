@@ -18,7 +18,10 @@ func fetch_pronouns_for_user(profile: TwitchUserState):
 	profile.loading["pronouns"] = true
 	var result = await utils.fetch(self, "https://pronouns.alejo.io/api/users/%s" % profile.display_name, true)
 	
-	var user_pronoun = result[0]
+	if result == null:
+		result = []
+	
+	var user_pronoun = result.front()
 	if user_pronoun:
 		user_pronoun = user_pronoun.pronoun_id
 		

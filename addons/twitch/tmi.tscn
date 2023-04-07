@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://cmfr6463oc3to"]
+[gd_scene load_steps=7 format=3 uid="uid://cmfr6463oc3to"]
 
 [ext_resource type="Script" path="res://addons/twitch/tmi.gd" id="1_3yu75"]
 [ext_resource type="Script" path="res://addons/twitch/streams/irc/irc.gd" id="2_vscsb"]
 [ext_resource type="Script" path="res://addons/twitch/apis/twitch.gd" id="3_4fr7a"]
+[ext_resource type="Script" path="res://addons/twitch/streams/eventsub/eventsub.gd" id="3_7wtt0"]
 [ext_resource type="Script" path="res://addons/twitch/apis/7tv.gd" id="4_y7ei2"]
 [ext_resource type="Script" path="res://addons/twitch/apis/pronouns.gd" id="5_20yfe"]
 
@@ -12,6 +13,10 @@ script = ExtResource("1_3yu75")
 [node name="Irc" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("2_vscsb")
+
+[node name="EventSub" type="Node" parent="."]
+script = ExtResource("3_7wtt0")
+listen_to = 19
 
 [node name="TwitchAPI" type="Node" parent="."]
 unique_name_in_owner = true
