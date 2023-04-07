@@ -169,11 +169,7 @@ func _ready():
 		file_dialog.visible = true
 		var path = await file_dialog.file_selected
 		
-		var buffer = FileAccess.get_file_as_bytes(path)
-		preload("res://addons/twitch/utils.gd").save_animated(
-			path,
-			buffer
-		)
+		preload("res://addons/twitch/utils.gd").save_animated(path)
 	)
 	
 	tmi.credentials_updated.connect(self._on_twitch_credentials_updated)
