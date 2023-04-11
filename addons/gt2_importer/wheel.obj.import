@@ -1,0 +1,21 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://itel5nnj7iqr"
+path="res://.godot/imported/wheel.obj-4afc2d60f703e32e4e01ef46a402e962.mesh"
+
+[deps]
+
+files=["res://.godot/imported/wheel.obj-4afc2d60f703e32e4e01ef46a402e962.mesh"]
+
+source_file="res://addons/gt2_importer/wheel.obj"
+dest_files=["res://.godot/imported/wheel.obj-4afc2d60f703e32e4e01ef46a402e962.mesh", "res://.godot/imported/wheel.obj-4afc2d60f703e32e4e01ef46a402e962.mesh"]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+optimize_mesh=true

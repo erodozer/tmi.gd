@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=3 uid="uid://5s7pwhah7q2v"]
+
+[ext_resource type="Script" path="res://components/raid/car_preview.gd" id="1_yi7w6"]
+
+[sub_resource type="Animation" id="Animation_c70y4"]
+length = 0.001
+
+[sub_resource type="Animation" id="Animation_a2mru"]
+resource_name = "showcase"
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_jv2fh"]
+_data = {
+"RESET": SubResource("Animation_c70y4"),
+"showcase": SubResource("Animation_a2mru")
+}
+
+[sub_resource type="Environment" id="Environment_qcfme"]
+background_mode = 1
+background_color = Color(0, 0.341176, 0.298039, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+reflected_light_source = 1
+
+[node name="CarPreview" type="Node"]
+script = ExtResource("1_yi7w6")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.970296, 0.241922, 0, -0.241922, 0.970296, 0, 3, 8)
+fov = 35.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "showcase"
+speed_scale = 0.3
+libraries = {
+"": SubResource("AnimationLibrary_jv2fh")
+}
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.95792, 14.7617)
+visible = false
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.442613, 1.44618, 0)
+visible = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_qcfme")
