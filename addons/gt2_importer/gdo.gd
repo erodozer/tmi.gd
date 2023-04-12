@@ -1,7 +1,9 @@
 extends RefCounted
 
-const UNITS_TO_METRES = 1.0 / 4096.0
+const BitmapHeight = preload("./gdp.gd").BitmapHeight
+const BitmapWidth = preload("./gdp.gd").BitmapWidth
 
+const UNITS_TO_METRES = 1.0 / 4096.0
 
 ## create a signed short
 func short(i: int):
@@ -42,13 +44,19 @@ func make_face(buffer: FileAccess, is_quad: bool, vertices: Array, normals: Arra
 	
 	var out_v = [v2, v1, v0] # ABC
 	var out_n = [n2, n1, n0]
+	var raw_v = [v0, v1, v2]
+	var raw_n = [n0, n1, n2]
 	if is_quad:
 		out_v.append_array([v3, v2, v0]) #ACD
 		out_n.append_array([n3, n2, n0])
+		raw_v.append(v3)
+		raw_n.append(n3)
 		
 	return {
 		"vertices": out_v.map(func (x): return vertices[x]),
 		"normals": out_n.map(func (x): return normals[x]),
+		"raw_vertices": raw_v,
+		"raw_normals": raw_n,
 		"flags": flags,
 		"face_type": face_type
 	}
@@ -67,8 +75,10 @@ func make_uv(buffer, is_quad, vertices, normals):
 	var uv3 = Vector2(buffer.get_8() / 255.0, buffer.get_8() / 255.0)
 	
 	var uvs = [uv2, uv1, uv0]
+	var raw_uvs = [uv0, uv1, uv2]
 	if is_quad:
 		uvs.append_array([uv3, uv2, uv0])
+		raw_uvs.append(uv3)
 	
 	return {
 		"vertices": polygon.vertices,
@@ -76,10 +86,50 @@ func make_uv(buffer, is_quad, vertices, normals):
 		"flags": polygon.flags,
 		"face_type": polygon.face_type,
 		"uvs": uvs,
+		"raw_uvs": raw_uvs,
 		"palette": palette_index
 	}
 	
-func make_lod(buffer: FileAccess):
+func uvs_to_pixels(uvs):
+	# copy pixels to merged texture
+	var copy = []
+	
+	# create bounding box from uvs
+	var min_x = 256
+	var min_y = 256
+	var max_x = 0
+	var max_y = 0
+	for uv in uvs:
+		var scaled = Vector2(uv * 256)
+		min_x = min(min_x, scaled.x)
+		min_y = min(min_y, scaled.y)
+		max_x = max(max_x, scaled.x)
+		max_y = max(max_y, scaled.y)
+	
+	return Rect2i(
+		min_x, min_y,
+		max_x - min_x + 1, max_y - min_y + 1
+	)
+
+func uvs_to_pixels_brute(uvs: Array):
+	var pixels = []
+	for i in range(0, len(uvs), 3):
+		var a = uvs[i] * 256
+		var b = uvs[i+1] * 256
+		var c = uvs[i+2] * 256
+		
+		for x in range(256):
+			for y in range(256):
+				var point = Vector2(x, y)
+				if Geometry2D.point_is_inside_triangle(
+					point,
+					a, b, c
+				):
+					pixels.append(Vector2i(point))
+		
+	return pixels
+	
+func make_lod(buffer: FileAccess, colors: Dictionary):
 	var vertex_count = buffer.get_16()
 	var normal_count = buffer.get_16()
 	var tri_count = buffer.get_16()
@@ -132,9 +182,12 @@ func make_lod(buffer: FileAccess):
 		) / 500.0)
 	
 	var st = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# TODO split into multiple surfaces if there is duplicate faces
+	# should fix UV mapping
 	
 	for _i in range(tri_count):
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	
 		var p = make_face(buffer, false, vertices, normals)
 		for i in range(3):
 			st.set_normal(p.normals[i])
@@ -155,6 +208,14 @@ func make_lod(buffer: FileAccess):
 			st.set_uv(p.uvs[i])
 			st.add_vertex(p.vertices[i])
 		
+		# copy pixels to merged texture
+		var copy = uvs_to_pixels(p.uvs)
+		
+		for _c in colors.values():
+			_c.merged.blend_rect(
+				_c.palettes[p.palette], copy, copy.position
+			)
+		
 	for _i in range(uv_quad_count):
 		var p = make_uv(buffer, true, vertices, normals)
 		for i in range(6):
@@ -162,6 +223,14 @@ func make_lod(buffer: FileAccess):
 			st.set_uv(p.uvs[i])
 			st.add_vertex(p.vertices[i])
 		
+		# copy pixels to merged texture
+		var copy = uvs_to_pixels(p.uvs)
+		
+		for _c in colors.values():
+			_c.merged.blend_rect(
+				_c.palettes[p.palette], copy, copy.position
+			)
+	
 	var mesh = st.commit()
 	mesh.surface_set_name(0, "body")
 	
@@ -238,7 +307,7 @@ func make_shadow(buffer: FileAccess):
 	
 	return instance
 
-func parse_model(source_file: String):
+func parse_model(source_file: String, palettes: Dictionary):
 	var file = FileAccess.open(source_file, FileAccess.READ)
 	if file == null:
 		return FileAccess.get_open_error()
@@ -256,7 +325,6 @@ func parse_model(source_file: String):
 	var unknown_4 = file.get_16()
 	
 	var mat = StandardMaterial3D.new()
-	mat.albedo_texture = preload("res://assets/cars/hpnvn_0.TGA")
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 	mat.cull_mode = BaseMaterial3D.CULL_BACK
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -278,7 +346,7 @@ func parse_model(source_file: String):
 	
 	var lods = []
 	for i in range(lodCount):
-		var lod = make_lod(file)
+		var lod = make_lod(file, palettes)
 		lod.name = "lod_%d" % i
 		lod.mesh.surface_set_material(0, mat)
 	
@@ -290,5 +358,25 @@ func parse_model(source_file: String):
 	# root.add_child(shadow)
 		
 	file.close()
+	
+	# debug show textures
+	var debug = Control.new()
+	for c in palettes.values():
+		c.merged = ImageTexture.create_from_image(c.merged)
+		var rect = TextureRect.new()
+		rect.texture = c.merged
+		rect.name = "Color%s" % c.id
+		debug.add_child(rect)
+		
+		var path = "user://cars/%s/Color%s.png" % [
+			source_file.get_file().rsplit(".", false, 1)[0],
+			c.id
+		]
+		DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+			
+	
+	mat.albedo_texture = palettes.values().front().merged
+	
+	root.add_child(debug)
 	
 	return root

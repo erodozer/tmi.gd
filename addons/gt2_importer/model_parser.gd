@@ -48,6 +48,9 @@ func _get_option_visibility(path, option, options):
 	return true
 	
 func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
+	var palettes = preload("./gdp.gd").new().parse_palette(
+		source_file.get_basename() + ".gdp"
+	)
 	var model = preload("./gdo.gd").new().parse_model(
 		source_file
 	)
