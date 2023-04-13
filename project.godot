@@ -33,6 +33,5 @@ enabled=PackedStringArray("res://addons/gt2_importer/plugin.cfg")
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 viewport/transparent_background=true

@@ -7,6 +7,15 @@ const BitmapWidth = preload("./gdp.gd").BitmapWidth
 
 const UNITS_TO_METRES = 1.0 / 4096.0
 
+var shadow_material: Material
+func _init():
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color.BLACK
+	mat.cull_mode = BaseMaterial3D.CULL_BACK
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	
+	shadow_material = mat
+
 ## create a signed short
 func short(i: int):
 	return wrapi(i, -32768, 32767)
@@ -237,13 +246,9 @@ func make_lod(buffer: FileAccess, colors: Dictionary):
 			mesh.get_surface_count() - 1,
 			"face=%d/palette=%d" % [
 				mesh.get_surface_count() - 1,
-				-1
+				p
 			]
 		)
-		#mesh.surface_set_material(
-		#	mesh.get_surface_count() - 1,
-		#	mat
-		#)
 		
 	#var mesh = st.commit()
 	#mesh.surface_set_name(0, "body")
@@ -293,33 +298,30 @@ func make_shadow(buffer: FileAccess):
 	
 	for _i in range(tri_count):
 		var data = buffer.get_32()
-		st.add_vertex(vertices[data & 0x3F])
-		st.add_vertex(vertices[data >> 6 & 0x3F])
 		st.add_vertex(vertices[data >> 12 & 0x3F])
+		st.add_vertex(vertices[data >> 6 & 0x3F])
+		st.add_vertex(vertices[data & 0x3F])
+		
 		
 	for _i in range(quad_count):
 		var data = buffer.get_32()
-		st.add_vertex(vertices[data & 0x3F])
+		st.add_vertex(vertices[data >> 12 & 0x3F])
 		st.add_vertex(vertices[data >> 6 & 0x3F])
-		st.add_vertex(vertices[data >> 12 & 0x3F])
+		st.add_vertex(vertices[data & 0x3F])
 		
-		st.add_vertex(vertices[data >> 12 & 0x3F])
 		st.add_vertex(vertices[data >> 18 & 0x3F])
+		st.add_vertex(vertices[data >> 12 & 0x3F])
 		st.add_vertex(vertices[data & 0x3F])
 		
 	var mesh = st.commit()
-	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color.BLACK
-	mat.cull_mode = BaseMaterial3D.CULL_FRONT
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	
-	mesh.surface_set_material(0, mat)
+	mesh.surface_set_material(0, shadow_material)
 	mesh.surface_set_name(0, "shadow")
 	
-	var instance = MeshInstance3D.new()
-	instance.mesh = mesh
+	var m = MeshInstance3D.new()
+	m.mesh = mesh
 	
-	return instance
+	return m
 
 func parse_model(source_file: String, palettes: Dictionary, include_wheels = true):
 	var file = FileAccess.open(source_file, FileAccess.READ)
@@ -364,23 +366,33 @@ func parse_model(source_file: String, palettes: Dictionary, include_wheels = tru
 	for i in range(lodCount):
 		var lod = make_lod(file, palettes)
 		lod.name = "lod_%d" % i
+		lod.translate(Vector3(0, 0.08, 0))
 		
 		for s in range(lod.mesh.get_surface_count()):
 			var palette = (lod.mesh as ArrayMesh).surface_get_name(s).split("/")[1].split("=")[1].to_int()
-			lod.set_surface_override_material(
-				s,
-				mat,
-			)
+			if palette == -1:
+				lod.set_surface_override_material(
+					s,
+					shadow_material,
+				)
+			else:
+				lod.set_surface_override_material(
+					s,
+					mat,
+				)
 	
 		if lods.is_empty():
 			lods.append(lod)
 			lod.add_to_group("gt2:body", true)
-			root.add_child(lod)
-			lod.owner = root
 		
-	# var shadow = make_shadow(file)
-	# root.add_child(shadow)
-		
+	#var shadow = make_shadow(file)
+	#root.add_child(shadow)
+	#shadow.owner = root
+	
+	for lod in lods:
+		root.add_child(lod)
+		lod.owner = root
+
 	file.close()
 	
 	# convert images to textures
@@ -415,12 +427,13 @@ static func apply_palette(car: Node, palettes: Array, idx: int):
 			# only override the wheel
 			var mat = wheel.get_surface_override_material(
 				1
-			)
+			) as BaseMaterial3D
 			mat.albedo_texture = tex
 		elif mesh.is_in_group("gt2:body"):
 			var body = mesh as MeshInstance3D
-			# all surfaces share the same resource
+			# all textured surfaces share the same resource
+			# so we can just swap it on one and affect all
 			var mat = mesh.get_surface_override_material(
-				0
-			)
+				1
+			) as BaseMaterial3D
 			mat.albedo_texture = tex
