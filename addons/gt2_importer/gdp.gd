@@ -13,9 +13,6 @@ const SingleInstanceOfFlagsStartIndex = 0
 const BitmapHeight = 224
 const BitmapWidth = 256
 
-func load_gamefile():
-	pass
-	
 func load_color(buffer: FileAccess, index: int):
 	buffer.seek(ColorCountIndex + 2 + index)
 	var id = buffer.get_8()
@@ -87,7 +84,9 @@ func create_bitmap(bitmap_lut, palette):
 func parse_palette(source_file: String, dump_files = false):
 	var file = FileAccess.open(source_file, FileAccess.READ)
 	if file == null:
-		return FileAccess.get_open_error()
+		var code = FileAccess.get_open_error()
+		push_error("could not open palette file %s, error_code: %d" % [source_file, code])
+		return code
 	
 	# read colors
 	file.seek(ColorCountIndex)
@@ -110,7 +109,7 @@ func parse_palette(source_file: String, dump_files = false):
 	var textures = {}
 	for color_set in colors:
 		var images: Array[Image] = []
-		
+		var materials: Array[Material] = []
 		var merged = Image.create(256, 256, false, Image.FORMAT_RGBA8)
 		merged.fill(Color.TRANSPARENT)
 		
@@ -118,6 +117,15 @@ func parse_palette(source_file: String, dump_files = false):
 		for palette in range(16):
 			var image = create_bitmap(bitmap, color_set.palettes[i])
 			images.append(image)
+			
+			var mat = StandardMaterial3D.new()
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+			mat.cull_mode = BaseMaterial3D.CULL_BACK
+			mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
+			mat.albedo_texture = ImageTexture.create_from_image(image)
+			
+			materials.append(mat)
 			
 			if dump_files:
 				var path = "user://cars/%s/Color%s/palette%02d.png" % [
@@ -141,6 +149,7 @@ func parse_palette(source_file: String, dump_files = false):
 		textures[color_set.id] = {
 			"id": color_set.id,
 			"palettes": images,
+			"materials": materials,
 			"merged": merged
 		}
 		

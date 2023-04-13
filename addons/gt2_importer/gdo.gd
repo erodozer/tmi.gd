@@ -1,5 +1,7 @@
 extends RefCounted
 
+const WheelMesh = preload("./wheel.mesh")
+
 const BitmapHeight = preload("./gdp.gd").BitmapHeight
 const BitmapWidth = preload("./gdp.gd").BitmapWidth
 
@@ -12,16 +14,20 @@ func short(i: int):
 func int32(i: int):
 	return wrapi(i, -pow(2, 16), pow(2, 16))
 
-func make_wheel(buffer: FileAccess):
+func make_wheel(buffer: FileAccess, material: Material):
 	var x = short(buffer.get_16())
 	var y = short(buffer.get_16())
 	var z = short(buffer.get_16())
 	var w = short(buffer.get_16())
 	
-	var wheel = preload("./wheel.tscn").instantiate()
+	var wheel = MeshInstance3D.new()
+	wheel.mesh = WheelMesh.duplicate()
+	wheel.set_surface_override_material(0, null)
+	wheel.set_surface_override_material(1, material)
 	
 	wheel.position = Vector3(x,y,z) * UNITS_TO_METRES
 	wheel.scale = Vector3(1.0,1.0,1.0) * (w / 10000.0)
+	wheel.add_to_group("gt2:wheel", true)
 	return wheel
 	
 func make_face(buffer: FileAccess, is_quad: bool, vertices: Array, normals: Array):
@@ -181,58 +187,66 @@ func make_lod(buffer: FileAccess, colors: Dictionary):
 			(((i >> 22) & 0x3FF) ^ sign_bit) - sign_bit
 		) / 500.0)
 	
+	# group faces into palettes
+	# so we can minimize the number of surfaces and texture binds
+	var faces = []
+	
 	var st = SurfaceTool.new()
 	# TODO split into multiple surfaces if there is duplicate faces
 	# should fix UV mapping
 	
+	var mesh = ArrayMesh.new()
+	
 	for _i in range(tri_count):
+		faces.append(make_face(buffer, false, vertices, normals))
+	for _i in range(quad_count):
+		faces.append(make_face(buffer, true, vertices, normals))
+	for _i in range(uv_tri_count):
+		faces.append(make_uv(buffer, false, vertices, normals))
+	for _i in range(uv_quad_count):
+		faces.append(make_uv(buffer, true, vertices, normals))
+		
+	# chunk faces based on their material
+	var groups = {}
+	for f in faces:
+		var p = -1 if not ("palette" in f) else f.palette
+		var l = groups.get(p, [])
+		l.append(f)
+		groups[p] = l
+	
+	for p in groups:
+		var mat = null if p == -1 else colors.values()[0].materials[p]
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
-		var p = make_face(buffer, false, vertices, normals)
-		for i in range(3):
-			st.set_normal(p.normals[i])
-			st.set_uv(Vector2.ZERO)
-			st.add_vertex(p.vertices[i])
+		for f in groups[p]:
+			for i in range(len(f.vertices)):
+				st.set_normal(f.normals[i])
+				st.set_uv(Vector2.ZERO if p == -1 else f.uvs[i])
+				st.add_vertex(f.vertices[i])
+				
+			if p != -1:
+				# copy pixels to merged texture
+				var copy = uvs_to_pixels(f.uvs)
+				for _c in colors.values():
+					_c.merged.blend_rect(
+						_c.palettes[p], copy, copy.position
+					)
 		
-	for _i in range(quad_count):
-		var p = make_face(buffer, true, vertices, normals)
-		for i in range(6):
-			st.set_normal(p.normals[i])
-			st.set_uv(Vector2.ZERO)
-			st.add_vertex(p.vertices[i])
-	
-	for _i in range(uv_tri_count):
-		var p = make_uv(buffer, false, vertices, normals)
-		for i in range(3):
-			st.set_normal(p.normals[i])
-			st.set_uv(p.uvs[i])
-			st.add_vertex(p.vertices[i])
+		mesh = st.commit(mesh)
+		mesh.surface_set_name(
+			mesh.get_surface_count() - 1,
+			"face=%d/palette=%d" % [
+				mesh.get_surface_count() - 1,
+				-1
+			]
+		)
+		#mesh.surface_set_material(
+		#	mesh.get_surface_count() - 1,
+		#	mat
+		#)
 		
-		# copy pixels to merged texture
-		var copy = uvs_to_pixels(p.uvs)
-		
-		for _c in colors.values():
-			_c.merged.blend_rect(
-				_c.palettes[p.palette], copy, copy.position
-			)
-		
-	for _i in range(uv_quad_count):
-		var p = make_uv(buffer, true, vertices, normals)
-		for i in range(6):
-			st.set_normal(p.normals[i])
-			st.set_uv(p.uvs[i])
-			st.add_vertex(p.vertices[i])
-		
-		# copy pixels to merged texture
-		var copy = uvs_to_pixels(p.uvs)
-		
-		for _c in colors.values():
-			_c.merged.blend_rect(
-				_c.palettes[p.palette], copy, copy.position
-			)
-	
-	var mesh = st.commit()
-	mesh.surface_set_name(0, "body")
+	#var mesh = st.commit()
+	#mesh.surface_set_name(0, "body")
 	
 	var instance = MeshInstance3D.new()
 	instance.mesh = mesh
@@ -307,7 +321,7 @@ func make_shadow(buffer: FileAccess):
 	
 	return instance
 
-func parse_model(source_file: String, palettes: Dictionary):
+func parse_model(source_file: String, palettes: Dictionary, include_wheels = true):
 	var file = FileAccess.open(source_file, FileAccess.READ)
 	if file == null:
 		return FileAccess.get_open_error()
@@ -329,15 +343,17 @@ func parse_model(source_file: String, palettes: Dictionary):
 	mat.cull_mode = BaseMaterial3D.CULL_BACK
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
+	mat.resource_local_to_scene = true
 	
 	# read wheel positions
 	var wheels = []
 	for i in range(4):
-		var wheel = make_wheel(file) as MeshInstance3D
-		wheel.name = "wheel_%02d" % i
-		wheels.append(wheel)
-		wheel.set_surface_override_material(1, mat)
-		root.add_child(wheel)
+		var wheel = make_wheel(file, mat)
+		if include_wheels:
+			wheel.name = "wheel_%02d" % i
+			root.add_child(wheel)
+			wheels.append(wheel)
+			wheel.owner = root
 		
 	file.get_buffer(0x828) # skip ahead
 	var lodCount = file.get_16()
@@ -348,35 +364,63 @@ func parse_model(source_file: String, palettes: Dictionary):
 	for i in range(lodCount):
 		var lod = make_lod(file, palettes)
 		lod.name = "lod_%d" % i
-		lod.mesh.surface_set_material(0, mat)
+		
+		for s in range(lod.mesh.get_surface_count()):
+			var palette = (lod.mesh as ArrayMesh).surface_get_name(s).split("/")[1].split("=")[1].to_int()
+			lod.set_surface_override_material(
+				s,
+				mat,
+			)
 	
 		if lods.is_empty():
 			lods.append(lod)
+			lod.add_to_group("gt2:body", true)
 			root.add_child(lod)
+			lod.owner = root
 		
 	# var shadow = make_shadow(file)
 	# root.add_child(shadow)
 		
 	file.close()
 	
+	# convert images to textures
+	var textures: Array[ImageTexture] = []
+	for c in palettes.values():
+		var tex = ImageTexture.create_from_image(c.merged)
+		textures.append(tex)
+	
 	# debug show textures
 	var debug = Control.new()
-	for c in palettes.values():
-		c.merged = ImageTexture.create_from_image(c.merged)
+	for i in range(len(palettes)):
+		var c = palettes.values()[i]
 		var rect = TextureRect.new()
-		rect.texture = c.merged
+		rect.texture = textures[i]
 		rect.name = "Color%s" % c.id
 		debug.add_child(rect)
-		
-		var path = "user://cars/%s/Color%s.png" % [
-			source_file.get_file().rsplit(".", false, 1)[0],
-			c.id
-		]
-		DirAccess.make_dir_recursive_absolute(path.get_base_dir())
-			
-	
-	mat.albedo_texture = palettes.values().front().merged
 	
 	root.add_child(debug)
+			
+	mat.albedo_texture = textures.front()
+	
+	root.set_meta("colors", textures)
 	
 	return root
+
+## Swap the color texture for a car model
+static func apply_palette(car: Node, palettes: Array, idx: int):
+	var tex = palettes[idx]
+	for mesh in car.get_children():
+		if mesh.is_in_group("gt2:wheel"):
+			var wheel = mesh as MeshInstance3D
+			# only override the wheel
+			var mat = wheel.get_surface_override_material(
+				1
+			)
+			mat.albedo_texture = tex
+		elif mesh.is_in_group("gt2:body"):
+			var body = mesh as MeshInstance3D
+			# all surfaces share the same resource
+			var mat = mesh.get_surface_override_material(
+				0
+			)
+			mat.albedo_texture = tex

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://d18hbecbccq2r"]
-
-[ext_resource type="ArrayMesh" uid="uid://itel5nnj7iqr" path="res://addons/gt2_importer/wheel.obj" id="1_7rl7g"]
-
-[node name="Wheel" type="MeshInstance3D"]
-mesh = ExtResource("1_7rl7g")

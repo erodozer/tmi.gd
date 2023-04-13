@@ -1,6 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://dflno8168t520"]
+[gd_scene load_steps=6 format=3 uid="uid://d3hdwtf6rf5kc"]
 
-[ext_resource type="PackedScene" uid="uid://5s7pwhah7q2v" path="res://components/raid/car_preview.tscn" id="1_23q0w"]
+[ext_resource type="PackedScene" uid="uid://brp3hye7xq8a5" path="res://addons/gt2_importer/preview/car_preview.tscn" id="1_23q0w"]
+[ext_resource type="PackedScene" uid="uid://c4hchdn24gfwy" path="res://assets/cars/hpnvn.cdo" id="2_1vk7a"]
+[ext_resource type="PackedScene" uid="uid://ckog7k4bgphtd" path="res://assets/cars/t2srn.cdo" id="2_5w1yd"]
 
 [sub_resource type="Environment" id="Environment_ad7um"]
 
@@ -33,6 +35,8 @@ render_target_update_mode = 4
 
 [node name="CarPreview" parent="SubViewportContainer/SubViewport" instance=ExtResource("1_23q0w")]
 
+[node name="Car" parent="SubViewportContainer/SubViewport/CarPreview" instance=ExtResource("2_5w1yd")]
+
 [node name="SubViewportContainer2" type="SubViewportContainer" parent="."]
 layout_mode = 0
 offset_left = 582.0
@@ -50,3 +54,5 @@ size = Vector2i(591, 412)
 render_target_update_mode = 4
 
 [node name="CarPreview" parent="SubViewportContainer2/SubViewport" instance=ExtResource("1_23q0w")]
+
+[node name="Car" parent="SubViewportContainer2/SubViewport/CarPreview" instance=ExtResource("2_1vk7a")]
