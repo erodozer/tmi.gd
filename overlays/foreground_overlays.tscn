@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://chays4n5ylcvm" path="res://components/clock/clock.tscn" id="1_rcgxh"]
 [ext_resource type="PackedScene" uid="uid://d2mvk45vkp64l" path="res://components/bubbles/bubble_stack.tscn" id="2_jwnk4"]
-[ext_resource type="PackedScene" uid="uid://cuwbg7x7n8b3b" path="res://components/alerts/redeem_yippee.tscn" id="3_w4fpk"]
+[ext_resource type="PackedScene" uid="uid://b4bwtfne1effe" path="res://components/alerts/redeem_yippee.tscn" id="3_w4fpk"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 

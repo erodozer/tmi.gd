@@ -1,0 +1,12 @@
+[gd_resource type="SphereMesh" load_steps=3 format=3 uid="uid://bvn3e6xpom0c0"]
+
+[ext_resource type="Shader" path="res://components/raid/dither_2.gdshader" id="1_j3bds"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_njudr"]
+render_priority = 0
+shader = ExtResource("1_j3bds")
+
+[resource]
+material = SubResource("ShaderMaterial_njudr")
+radial_segments = 8
+rings = 8

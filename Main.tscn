@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://qlveow25bthq"]
+[gd_scene load_steps=6 format=3 uid="uid://qlveow25bthq"]
 
 [ext_resource type="PackedScene" uid="uid://cmfr6463oc3to" path="res://addons/twitch/tmi.tscn" id="1_hirkq"]
 [ext_resource type="PackedScene" uid="uid://pg142e3w2fu1" path="res://components/debug/debug_window.tscn" id="2_x60kq"]
 [ext_resource type="PackedScene" uid="uid://ccenwry0rkni4" path="res://overlays/foreground_overlays.tscn" id="4_4wwpd"]
+[ext_resource type="PackedScene" uid="uid://23i3xrkva0hr" path="res://components/raid/raid.tscn" id="4_g2esy"]
 [ext_resource type="PackedScene" uid="uid://bcqqjjenx87m0" path="res://overlays/background_overlays.tscn" id="5_20kdc"]
 
 [node name="Node" type="Control"]
@@ -41,6 +42,8 @@ transparent = true
 
 [node name="ForegroundOverlays" parent="ForegroundOverlays" instance=ExtResource("4_4wwpd")]
 
+[node name="Raid" parent="ForegroundOverlays/ForegroundOverlays/Frame" index="3" instance=ExtResource("4_g2esy")]
+
 [node name="DebugWindow" parent="." node_paths=PackedStringArray("tmi") instance=ExtResource("2_x60kq")]
 initial_position = 2
 title = "tmi.gd Overlay Debug"
@@ -50,6 +53,7 @@ tmi = NodePath("../Twitch")
 [connection signal="command" from="Twitch" to="BackgroundOverlays/Chatbox" method="_on_twitch_command"]
 [connection signal="command" from="Twitch" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_twitch_command"]
 [connection signal="command" from="Twitch" to="ForegroundOverlays/ForegroundOverlays/Frame/RedeemYippee" method="_on_twitch_command"]
+[connection signal="command" from="Twitch" to="ForegroundOverlays/ForegroundOverlays/Frame/Raid" method="_on_twitch_command"]
 [connection signal="connection_status_changed" from="Twitch" to="DebugWindow" method="_on_twitch_connection_status_changed"]
 [connection signal="clear_bubbles" from="DebugWindow" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_debug_window_clear_bubbles"]
 [connection signal="send_bubble" from="DebugWindow" to="ForegroundOverlays/ForegroundOverlays/Frame/StreamerBubbles" method="_on_window_send_bubble"]

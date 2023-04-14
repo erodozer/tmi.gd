@@ -172,6 +172,10 @@ func _ready():
 		preload("res://addons/twitch/utils.gd").save_animated(path)
 	)
 	
+	(get_node("%TestRaid") as Button).pressed.connect(func ():
+		tmi.command.emit("raid", {})
+	)
+	
 	tmi.credentials_updated.connect(self._on_twitch_credentials_updated)
 	
 	if %Autoconnect.is_pressed():

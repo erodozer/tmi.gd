@@ -299,6 +299,12 @@ layout_mode = 2
 tooltip_text = "Ignore bot commands starting with any symbol or word.  This list is space separated"
 text = "!"
 
+[node name="TestRaid" type="Button" parent="ScrollContainer/VBoxContainer/Chat Controls/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Test Raid"
+
 [node name="Gif Helper" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
 
