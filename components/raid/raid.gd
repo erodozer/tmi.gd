@@ -2,9 +2,18 @@ extends Node
 
 const GT2_GDO = preload("res://addons/gt2_importer/gdo.gd")
 
+@export var tmi: Tmi
+
 func _on_twitch_command(type, event):
-	if type != "raid":
+	if type != Tmi.EventType.RAID:
 		return
+	
+	# fetch profile image
+	var profile = await tmi.twitch_api.fetch_user(event.user.id)
+	var profile_image = await tmi.twitch_api.fetch_profile_image(profile)
+	
+	# fetch car data
+	# TODO interface with supabase
 	
 	var car = preload("res://assets/cars/hcvon.cdo").instantiate()
 	
@@ -45,11 +54,14 @@ func _on_twitch_command(type, event):
 		if i as MeshInstance3D:
 			i.material_overlay = shadow
 	
+	%UserName.text = profile.display_name
 	%UserName.label_settings.font_size = 140
 	while %UserName.get_line_count() > 1 and %UserName.label_settings.font_size > 32:
 		%UserName.label_settings.font_size = clamp(%UserName.label_settings.font_size - 8, 32, 140)
 		(%UserName as Label).force_update_transform()
 		await get_tree().process_frame
+
+	%ProfileImage.texture = profile_image
 	
 	anim.play("startup")
 	await anim.animation_finished

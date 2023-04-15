@@ -6,88 +6,12 @@
 [ext_resource type="Texture2D" uid="uid://ok4co75wadl1" path="res://assets/hires_circle_mask.png" id="5_hn7ap"]
 [ext_resource type="FontFile" uid="uid://ch3ldfylc8fpx" path="res://assets/Oswald-Bold.ttf" id="6_dd42n"]
 
-[sub_resource type="Animation" id="Animation_a7wdo"]
-resource_name = "show_raider"
-length = 5.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("CanvasLayer/LabelAnchor/ProfileImage:position")
-tracks/0/interp = 2
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.6, 1),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector2(-221, 746), Vector2(-221, 746), Vector2(560, 2)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("CanvasLayer/LabelAnchor/Message:position")
-tracks/1/interp = 2
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.6, 1),
-"transitions": PackedFloat32Array(1, 1, 3.86375),
-"update": 0,
-"values": [Vector2(-1350, 0), Vector2(-1350, 0), Vector2(16, 0)]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("CanvasLayer/LabelAnchor/ProfileImage:scale")
-tracks/2/interp = 2
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.6, 1),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector2(1.171, 1.171), Vector2(1.171, 1.171), Vector2(1, 1)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("CanvasLayer/SubViewportContainer:position")
-tracks/3/interp = 2
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(3.9, 4.3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(0, 0), Vector2(-1280, 0)]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("CanvasLayer/LabelAnchor:position")
-tracks/4/interp = 2
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(3.9, 4.3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(0, 0), Vector2(1280, 0)]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("CanvasLayer/Mask:scale")
-tracks/5/interp = 2
-tracks/5/loop_wrap = false
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 4.3, 5),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector2(2, 2), Vector2(2, 2), Vector2(1e-05, 1e-05)]
-}
-
 [sub_resource type="Animation" id="Animation_a6p4t"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("CanvasLayer/LabelAnchor/ProfileImage:scale")
+tracks/0/path = NodePath("%ProfileMask:scale")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -99,7 +23,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("CanvasLayer/LabelAnchor/ProfileImage:position")
+tracks/1/path = NodePath("%ProfileMask:position")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -157,6 +81,82 @@ tracks/5/keys = {
 "values": [Vector2(-1350, 0)]
 }
 
+[sub_resource type="Animation" id="Animation_a7wdo"]
+resource_name = "show_raider"
+length = 5.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("%ProfileMask:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-221, 746), Vector2(-221, 746), Vector2(560, -20)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CanvasLayer/LabelAnchor/Message:position")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.6, 1),
+"transitions": PackedFloat32Array(1, 1, 3.86375),
+"update": 0,
+"values": [Vector2(-1350, 0), Vector2(-1350, 0), Vector2(16, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("%ProfileMask:scale")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.6, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1.171, 1.171), Vector2(1.171, 1.171), Vector2(1, 1)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("CanvasLayer/SubViewportContainer:position")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(3.9, 4.3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(-1280, 0)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("CanvasLayer/LabelAnchor:position")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(3.9, 4.3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(1280, 0)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("CanvasLayer/Mask:scale")
+tracks/5/interp = 2
+tracks/5/loop_wrap = false
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 4.3, 5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(2, 2), Vector2(2, 2), Vector2(1e-05, 1e-05)]
+}
+
 [sub_resource type="Animation" id="Animation_l1nmi"]
 resource_name = "startup"
 tracks/0/type = "value"
@@ -191,6 +191,15 @@ _data = {
 "startup": SubResource("Animation_l1nmi")
 }
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jukg5"]
+shader = ExtResource("3_ho0k6")
+shader_parameter/size = 96
+shader_parameter/dot_size = 1.5
+shader_parameter/value_multiplier = 1.0
+shader_parameter/invert = false
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_om804"]
+
 [sub_resource type="LabelSettings" id="LabelSettings_4vuku"]
 line_spacing = 0.0
 font = ExtResource("6_dd42n")
@@ -199,15 +208,6 @@ font_size = 124
 [sub_resource type="LabelSettings" id="LabelSettings_igpjk"]
 font = ExtResource("6_dd42n")
 font_size = 54
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_jukg5"]
-shader = ExtResource("3_ho0k6")
-shader_parameter/size = 64
-shader_parameter/dot_size = 2.0
-shader_parameter/value_multiplier = 1.0
-shader_parameter/invert = false
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_xmuqr"]
 
 [sub_resource type="Environment" id="Environment_mgcii"]
 
@@ -249,20 +249,59 @@ unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 0
 
+[node name="ProfileMask" type="TextureRect" parent="CanvasLayer/LabelAnchor"]
+unique_name_in_owner = true
+clip_children = 1
+custom_minimum_size = Vector2(700, 700)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -709.0
+offset_top = 961.0
+offset_right = 90.9998
+offset_bottom = 1761.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.171, 1.171)
+texture = ExtResource("5_hn7ap")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ProfileImage" type="TextureRect" parent="CanvasLayer/LabelAnchor/ProfileMask"]
+unique_name_in_owner = true
+texture_filter = 2
+material = SubResource("ShaderMaterial_jukg5")
+custom_minimum_size = Vector2(700, 700)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -100.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.163605
+pivot_offset = Vector2(350, 350)
+texture = SubResource("PlaceholderTexture2D_om804")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="Message" type="VBoxContainer" parent="CanvasLayer/LabelAnchor"]
 unique_name_in_owner = true
 clip_contents = true
+custom_minimum_size = Vector2(1280, 0)
 layout_mode = 1
 anchors_preset = -1
 offset_left = -1350.0
-offset_right = -110.0
-offset_bottom = 436.0
-theme_override_constants/separation = -16
+offset_right = -70.0
+offset_bottom = 220.0
+theme_override_constants/separation = -48
 
 [node name="UserName" type="Label" parent="CanvasLayer/LabelAnchor/Message"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "themanwithnoscreenname"
+text = "TWITCHUSERNAME"
 label_settings = SubResource("LabelSettings_4vuku")
 autowrap_mode = 1
 uppercase = true
@@ -272,37 +311,6 @@ layout_mode = 2
 text = "Wants to race"
 label_settings = SubResource("LabelSettings_igpjk")
 uppercase = true
-
-[node name="ProfileImage" type="TextureRect" parent="CanvasLayer/LabelAnchor"]
-unique_name_in_owner = true
-clip_children = 1
-texture_filter = 2
-material = SubResource("ShaderMaterial_jukg5")
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -709.0
-offset_top = 961.0
-offset_right = 53.9995
-offset_bottom = 1724.0
-grow_horizontal = 2
-grow_vertical = 2
-scale = Vector2(1.171, 1.171)
-texture = SubResource("PlaceholderTexture2D_xmuqr")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="TextureRect3" type="TextureRect" parent="CanvasLayer/LabelAnchor/ProfileImage"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("5_hn7ap")
-expand_mode = 1
-stretch_mode = 5
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="CanvasLayer"]
 unique_name_in_owner = true

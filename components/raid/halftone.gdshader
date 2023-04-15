@@ -19,16 +19,26 @@ vec3 rgb2hsv(vec3 tex) {
 	}
 }
 
+float luminance(vec4 sample) {
+	return 0.21 * sample.r + 0.71 * sample.g + 0.07 * sample.b + (1.0 - sample.a);
+}
+
 void fragment() {
 	float fSize = float(size); // float version of "size"
 	vec2 ratio = vec2(1.0, TEXTURE_PIXEL_SIZE.x / TEXTURE_PIXEL_SIZE.y); // make sure the dots are going to be 1:1
 	vec2 pixelated_uv = floor(UV * fSize * ratio) / (fSize * ratio); // pixelates the UV, first multiply with size so it can be rounded to integer then divide it with the same value so your computer can see it and multiply with ratio to fix stretching
 	float dots = length(fract(UV * fSize * ratio) - vec2(0.5)) * dot_size; // fracts the UV to make it loop, substract it by half then turn it into circle (using length) and finally multiply with 2 for smaller circle
-	float value = rgb2hsv(texture(TEXTURE, pixelated_uv).rgb).z; // get pixel value (brightness) from hsv; "v" means value
+	float value = luminance(texture(TEXTURE, pixelated_uv)); // get pixel value (brightness) from hsv; "v" means value
+	
+	// remove completely transparent parts
+	if (texture(TEXTURE, pixelated_uv).a == 0.0) {
+		discard;
+	}
+		
 	dots = mix(dots, 1.0 - dots, float(invert)); // choose between original dots and inverted dots using "invert" since bool are only 0 (false) and 1 (true)
 	dots += value * value_multiplier; // add dots with pixels value which will shrink them. Also multiply with value mutliplier because sometimes its too bright
 	dots = pow(dots, 5.0); // make the dots harder but with anti-aliasing (you can use floor function but the edge will be hard)
 	dots = clamp(dots, 0.0, 1.0); // clamp result value to avoid artifacts when blended with other objects
 	COLOR.rgb = vec3(dots);
-	COLOR.a = 1.0; // the alpha shouldnt be affected too so use original texture instead
+	COLOR.a = texture(TEXTURE, pixelated_uv).a; // the alpha shouldnt be affected too so use original texture instead
 }
