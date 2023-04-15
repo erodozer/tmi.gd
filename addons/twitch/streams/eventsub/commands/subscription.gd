@@ -7,13 +7,10 @@ class SubscriptionMessage:
 	var text
 
 func handle_message(message, tmi: Tmi):
-	if message.notification_type != "channel.channel_points_custom_reward_redemption.add:1":
-		return
-		
 	match message.notification_type:
 		"channel.subscribe:1":
 			tmi.command.emit(
-				"subscription",
+				Tmi.EventType.SUBSCRIPTION,
 				{
 					"user": {
 						"id": message.event.user_id,
@@ -21,7 +18,7 @@ func handle_message(message, tmi: Tmi):
 					},
 					"is_gift": false,
 					"text": message.event.get("user_input", ""),
-				} as SubscriptionMessage
+				}
 			)	
 		"channel.subscription.gift:1":
 			pass

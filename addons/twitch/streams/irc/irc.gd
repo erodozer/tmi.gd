@@ -118,7 +118,7 @@ func _wait_for_acknowledgement():
 	_login_with_credentials(credentials if credentials.token != "" else TwitchCredentials.get_fallback_credentials())
 
 func _login_with_credentials(credentials: TwitchCredentials):
-	if not socket:
+	if socket == null:
 		return
 
 	socket.send_text("PASS %s" % credentials.get_password.call())
@@ -134,7 +134,7 @@ func _login_with_credentials(credentials: TwitchCredentials):
 	_join_channel()
 	
 func _join_channel():
-	if not socket:
+	if socket == null:
 		return
 
 	# join channels to listen to

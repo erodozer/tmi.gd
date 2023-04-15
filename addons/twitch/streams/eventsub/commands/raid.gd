@@ -8,8 +8,8 @@ func handle_message(message, tmi: Tmi):
 		Tmi.EventType.RAID,
 		{
 			"user": {
-				"id": message.event.user_id,
-				"display_name": message.event.user_name,
+				"id": message.event.from_broadcaster_user_id,
+				"display_name": message.event.from_broadcaster_user_name,
 			},
 			"viewers": message.event.viewers,
 		},

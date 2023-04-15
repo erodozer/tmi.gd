@@ -21,7 +21,7 @@ func preload_emotes(channel_id:String):
 		true
 	)
 	if body == null:
-		push_error("Unable to fetch 7tv emotes for channel %s" % channel_id)
+		push_warning("Unable to fetch 7tv emotes for channel %s" % channel_id)
 		return
 	
 	var emotes = []

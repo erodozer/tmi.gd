@@ -37,8 +37,12 @@ const SUBSCRIPTION_TYPES = [
 	{
 		"channel.shoutout.create": "1",
 	},
+	# Raid
+	{
+		"channel.raid": "1"
+	},
 	# Hype
-	{		
+	{	
 		"channel.hype_train.begin": "1",
 		"channel.hype_train.progress": "1",
 		"channel.hype_train.end": "1"
@@ -65,7 +69,7 @@ const SUBSCRIPTION_TYPES = [
 	}
 ]
 
-@export_flags("Info", "Follow/Subscriptions", "Shoutout", "Hype", "Redeems", "Polls/Predictions", "Goal") var listen_to = 0
+@export_flags("Info", "Follow/Subscriptions", "Shoutout", "Raid", "Hype", "Redeems", "Polls/Predictions", "Goal") var listen_to = 0
 @export_enum("LIVE", "LOCAL") var mode = "LIVE"
 
 var socket: WebSocketPeer
@@ -83,6 +87,8 @@ signal channel_set
 @onready var commands:  = [
 	await preload("./commands/redeem.gd").new(),
 	await preload("./commands/follow.gd").new(),
+	await preload("./commands/raid.gd").new(),
+	await preload("./commands/subscription.gd").new()
 ]
 
 func _init():
