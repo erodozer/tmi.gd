@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cmfr6463oc3to"]
+[gd_scene load_steps=8 format=3 uid="uid://cmfr6463oc3to"]
 
 [ext_resource type="Script" path="res://addons/twitch/tmi.gd" id="1_3yu75"]
 [ext_resource type="Script" path="res://addons/twitch/streams/irc/irc.gd" id="2_vscsb"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://addons/twitch/streams/eventsub/eventsub.gd" id="3_7wtt0"]
 [ext_resource type="Script" path="res://addons/twitch/apis/7tv.gd" id="4_y7ei2"]
 [ext_resource type="Script" path="res://addons/twitch/apis/pronouns.gd" id="5_20yfe"]
+[ext_resource type="Script" path="res://addons/twitch/apis/bttv.gd" id="6_fk00d"]
 
 [node name="Twitch" type="Node"]
 script = ExtResource("1_3yu75")
@@ -17,6 +18,7 @@ script = ExtResource("2_vscsb")
 [node name="EventSub" type="Node" parent="."]
 script = ExtResource("3_7wtt0")
 listen_to = 19
+mode = "LOCAL"
 
 [node name="TwitchAPI" type="Node" parent="."]
 unique_name_in_owner = true
@@ -24,6 +26,9 @@ script = ExtResource("3_4fr7a")
 
 [node name="7tvAPI" type="Node" parent="."]
 script = ExtResource("4_y7ei2")
+
+[node name="BttvAPI" type="Node" parent="."]
+script = ExtResource("6_fk00d")
 
 [node name="PronounsAPI" type="Node" parent="."]
 script = ExtResource("5_20yfe")

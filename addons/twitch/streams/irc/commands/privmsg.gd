@@ -23,7 +23,7 @@ func _render_message(message: String, emotes: Dictionary, tmi: Tmi):
 		)
 		
 		stringReplacements.append({
-			"stringToReplace": stringToReplace,
+			"stringToReplace": "\b%s\b" % stringToReplace,
 			"replacement": "[img=%d]%s[/img]" % [32, emote.texture.resource_path],
 		})
 	
@@ -57,7 +57,6 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	# ignore twitch chat commands
 	if message.begins_with("/"):
 		return
-
 	
 	var emotes = ircCommand.metadata.emotes.split("/", false)
 	var e = {}
@@ -88,13 +87,13 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	var profile = await tmi.twitch_api.fetch_user(ircCommand.metadata["user-id"])
 		
 	tmi.command.emit(
-		"message",
-		preload("../../../models/chat_message.gd").new(
-			ircCommand.metadata['id'],
-			result.get_string("channel"),
-			_render_message(message, e, tmi),
-			message,
-			ircCommand.metadata,
-			profile,
-		)
+		Tmi.EventType.CHAT_MESSAGE,
+		{
+			"id": ircCommand.metadata['id'],
+			"channel": result.get_string("channel"),
+			"text": _render_message(message, e, tmi),
+			"raw_message": message,
+			"tags": ircCommand.metadata,
+			"sender": profile,
+		}
 	)

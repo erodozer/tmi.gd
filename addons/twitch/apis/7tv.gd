@@ -18,12 +18,11 @@ func _on_room_state(type: String, evt):
 func preload_emotes(channel_id:String):
 	var body = await twitch_utils.fetch(self,
 		"https://7tv.io/v3/users/twitch/%s" % channel_id,
+		true
 	)
 	if body == null:
 		push_error("Unable to fetch 7tv emotes for channel %s" % channel_id)
 		return
-		
-	body = JSON.parse_string(body.get_string_from_utf8())
 	
 	var emotes = []
 	if body.emote_set and body.emote_set.emotes:
@@ -45,14 +44,14 @@ func preload_emotes(channel_id:String):
 				return "2x" in f.static_name and f.format == "WEBP"
 		).front()
 		
+		url = "https:%s/%s" % [url, image.name]
+		
 		if image:
-			var tex = twitch_utils.load_animated("user://emotes/7tv_%s.webp" % id)
-			if not tex:
-				var data = await twitch_utils.fetch(
-					self,
-					"https:%s/%s" % [url, image.name]
-				)
-				tex = twitch_utils.save_animated("user://emotes/7tv_%s.webp" % id, data)
+			var tex = await twitch_utils.fetch_animated(
+				self,
+				"user://emotes/7tv_%s.webp" % id,
+				url,
+			)
 			acc.append({
 				"code": name,
 				"texture": tex,

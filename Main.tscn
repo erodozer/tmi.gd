@@ -6,13 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://23i3xrkva0hr" path="res://components/raid/raid.tscn" id="4_g2esy"]
 [ext_resource type="PackedScene" uid="uid://bcqqjjenx87m0" path="res://overlays/background_overlays.tscn" id="5_20kdc"]
 
-[node name="Node" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Main" type="Node"]
 
 [node name="Twitch" parent="." instance=ExtResource("1_hirkq")]
 enable_7tv_emotes = true
@@ -20,7 +14,6 @@ include_profile_images = true
 include_pronouns = true
 
 [node name="BackgroundOverlays" parent="." instance=ExtResource("5_20kdc")]
-layout_mode = 1
 
 [node name="Chatbox" parent="BackgroundOverlays" index="0"]
 anchors_preset = -1
@@ -28,7 +21,6 @@ offset_left = -332.0
 offset_top = 48.0
 offset_right = -32.0
 offset_bottom = -330.0
-grow_vertical = 0
 size_flags_horizontal = 1
 alignment = 2
 
@@ -42,7 +34,8 @@ transparent = true
 
 [node name="ForegroundOverlays" parent="ForegroundOverlays" instance=ExtResource("4_4wwpd")]
 
-[node name="Raid" parent="ForegroundOverlays/ForegroundOverlays/Frame" index="3" instance=ExtResource("4_g2esy")]
+[node name="Raid" parent="ForegroundOverlays/ForegroundOverlays/Frame" index="3" node_paths=PackedStringArray("tmi") instance=ExtResource("4_g2esy")]
+tmi = NodePath("../../../../Twitch")
 
 [node name="DebugWindow" parent="." node_paths=PackedStringArray("tmi") instance=ExtResource("2_x60kq")]
 initial_position = 2

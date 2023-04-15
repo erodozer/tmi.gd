@@ -23,6 +23,6 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 		return
 	
 	tmi.command.emit(
-		"delete-user",
+		Tmi.EventType.USER_DELETED,
 		result.get_string("userid"),
 	)

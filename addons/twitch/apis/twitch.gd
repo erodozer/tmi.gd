@@ -133,12 +133,21 @@ func fetch_twitch_emote(emote: String):
 
 func fetch_profile_image(profile: TwitchUserState):
 	profile.loading["profile_image"] = true
-	var profile_image = utils.load_static("user://profile_images/%s.png" % profile.id)
-	if not profile_image and profile.extra.profile_image_url:
-		var body = await utils.fetch(self, profile.extra.profile_image_url)
+	var profile_image = utils.load_animated("user://profile_images/%s" % profile.id)
+	if not profile_image:
+		profile_image = utils.load_static("user://profile_images/%s.png" % profile.id)
+		
+	var url = profile.extra.profile_image_url as String
+	if not profile_image and url:
+		var body = await utils.fetch(self, url)
+		var extension = url.get_extension()
 		if body:
 			DirAccess.make_dir_recursive_absolute("user://profile_images/")
-			profile_image = await utils.save_static("user://profile_images/%s.png" % profile.id, body)
+			match extension:
+				"png":
+					profile_image = await utils.save_static("user://profile_images/%s.png" % profile.id, body)
+				_:
+					profile_image = await utils.save_animated("user://profile_images/%s" % profile.id, body)
 			
 	profile.extra["profile_image"] = profile_image
 	profile.loading.erase("profile_image")

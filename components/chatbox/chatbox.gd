@@ -85,11 +85,11 @@ func _on_window_send_bubble(text):
 
 func _on_twitch_command(type, event):
 	match type:
-		"message":
+		Tmi.EventType.CHAT_MESSAGE:
 			_spawn_chat(event)
-		"delete-message":
+		Tmi.EventType.DELETE_MESSAGE:
 			_delete_message(event)
-		"delete-user":
+		Tmi.EventType.USER_DELETED:
 			_delete_user_messages(event)
 
 func _on_debug_window_update_ignore_users_list(users: Array):
@@ -99,15 +99,3 @@ func _on_debug_window_update_ignore_users_list(users: Array):
 func _on_debug_window_update_ignore_commands_list(command_prefixes: Array):
 	ignore_commands.clear()
 	ignore_commands.append_array(command_prefixes)
-
-
-
-
-
-
-
-
-
-
-
-

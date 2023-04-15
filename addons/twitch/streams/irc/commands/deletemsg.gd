@@ -48,6 +48,6 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	ircCommand.metadata.emotes = e
 			
 	tmi.command.emit(
-		"delete-message",
+		Tmi.EventType.DELETE_MESSAGE,
 		result.get_string("messageid"),
 	)

@@ -1,6 +1,16 @@
 extends Node
 class_name Tmi
 
+class EventType:
+	const CHAT_MESSAGE = "message"
+	const DELETE_MESSAGE = "delete-message"
+	const FOLLOW = "follow"
+	const SUBSCRIPTION = "subscription"
+	const REDEEM = "redeem"
+	const RAID = "raid"
+	const USER_CHANGED = "userstate"
+	const USER_DELETED = "user-deleted"
+
 @export var credentials: TwitchCredentials
 
 @export_category("Features")
@@ -21,7 +31,7 @@ enum ConnectionStatus {
 }
 
 signal credentials_updated(credentials: TwitchCredentials)
-signal command(type: String, event)
+signal command(type, event)
 signal connection_status_changed(status: ConnectionStatus)
 
 func _set_credentials(credentials: TwitchCredentials):

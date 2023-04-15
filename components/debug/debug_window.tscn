@@ -31,7 +31,7 @@ PanelContainer/styles/panel = SubResource("StyleBoxFlat_moot8")
 snap_2d_transforms_to_pixel = true
 snap_2d_vertices_to_pixel = true
 initial_position = 1
-size = Vector2i(320, 600)
+size = Vector2i(480, 600)
 extend_to_title = true
 content_scale_mode = 1
 script = ExtResource("1_tjxpa")
@@ -182,7 +182,6 @@ layout_mode = 2
 
 [node name="HBoxContainer3" type="HFlowContainer" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer"]
 layout_mode = 2
-alignment = 2
 
 [node name="Autoconnect" type="CheckButton" parent="ScrollContainer/VBoxContainer/Twitch Controls/VBoxContainer/HBoxContainer3"]
 unique_name_in_owner = true
@@ -203,7 +202,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
-size_flags_horizontal = 2
+size_flags_horizontal = 8
 text = "Reconnect"
 
 [node name="BubblesForm" type="PanelContainer" parent="ScrollContainer/VBoxContainer"]

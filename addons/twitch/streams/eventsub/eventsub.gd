@@ -1,7 +1,16 @@
 class_name TwitchEventSub
 extends TwitchEventStream
 
-const ENDPOINT = "wss://eventsub-beta.wss.twitch.tv/ws"
+const ENDPOINTS = {
+	"LIVE": {
+		"WEBSOCKET": "wss://eventsub-beta.wss.twitch.tv/ws",
+		"SUBSCRIPTION": "https://api.twitch.tv/helix/eventsub/subscriptions"
+	},
+	"LOCAL": {
+		"WEBSOCKET": "ws://127.0.0.1:8080/ws",
+		"SUBSCRIPTION": "http://127.0.0.1:8080/eventsub/subscriptions"
+	}
+}
 
 const SUBSCRIPTION_TYPES = [
 	# Info
@@ -57,6 +66,7 @@ const SUBSCRIPTION_TYPES = [
 ]
 
 @export_flags("Info", "Follow/Subscriptions", "Shoutout", "Hype", "Redeems", "Polls/Predictions", "Goal") var listen_to = 0
+@export_enum("LIVE", "LOCAL") var mode = "LIVE"
 
 var socket: WebSocketPeer
 var reconnect_socket: WebSocketPeer
@@ -113,7 +123,7 @@ func connect_to_server(soft = false):
 	socket = WebSocketPeer.new()
 	
 	# create websocket connection to twitch irc endpoitn
-	socket.connect_to_url(ENDPOINT)
+	socket.connect_to_url(ENDPOINTS[mode].WEBSOCKET)
 	set_process(true)
 	
 func _process(_delta):
@@ -162,7 +172,7 @@ func request_permission(permission, details):
 	var req = HTTPRequest.new()
 	add_child(req)
 	req.request(
-		"https://api.twitch.tv/helix/eventsub/subscriptions",
+		ENDPOINTS[mode].SUBSCRIPTION,
 		[
 			"Authorization: Bearer %s" % credentials.token,
 			"Client-Id: %s" % credentials.client_id,
@@ -219,15 +229,6 @@ func _handle_packet(packet: PackedByteArray):
 		var data = JSON.parse_string(message)
 		if data:
 			message_received.emit(data)
-	
-## Sends a PRIVMSG to a specified channel.
-## If the channel is not specified, we default to using the first channel that 
-## we are connected to
-func send_message(text, channel = null):
-	socket.send_text("PRIVMSG #%s :%s" % [
-		self.channel if channel == null else channel,
-		text
-	])
 
 func handle_message(command: Dictionary):
 	match command.metadata.message_type:
@@ -236,7 +237,7 @@ func handle_message(command: Dictionary):
 				keep_alive_timer.start(keep_alive_timer.wait_time)
 		"session_welcome":
 			session_id = command.payload.session.id
-			keep_alive_timer.start(command.payload.session.keepalive_timeout_seconds)
+			keep_alive_timer.start(command.payload.session.keepalive_timeout_seconds + 5.0) # twitch's keep alive is a bit too aggressive
 			
 			if reconnect_socket:
 				socket.close()

@@ -1,7 +1,6 @@
 class_name TwitchIrc
 extends TwitchEventStream
 
-
 const ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
 
 var socket: WebSocketPeer
@@ -71,9 +70,6 @@ func _process(_delta):
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 		set_process(false) # Stop processing.
 	
-func _login_with_credentials(credentials: TwitchCredentials):
-	socket.send_text("PASS %s" % credentials.get_password.call())
-	socket.send_text("NICK %s" % credentials.bot_id)
 	
 func _setup_connection():
 	connection_state = ConnectionState.STARTING
@@ -93,6 +89,22 @@ func _setup_connection():
 		socket.close()
 		return
 		
+	var kill_timer = get_tree().create_timer(10.0)
+	kill_timer.timeout.connect(
+		func ():
+			if connection_state != ConnectionState.STARTED:
+				push_error("could not connect to IRC within time limit")
+				connection_state = ConnectionState.FAILED
+				socket.close()
+			, CONNECT_ONE_SHOT
+	)
+		
+	_wait_for_acknowledgement()
+		
+func _wait_for_acknowledgement():
+	if not socket:
+		return
+	
 	# wait for cap req acknowledgement before proceeding
 	var acknowledged = await request
 	if not acknowledged:
@@ -100,16 +112,29 @@ func _setup_connection():
 		connection_state = ConnectionState.FAILED
 		socket.close()
 		return
-		
+	
 	# set authentication of the integration so that the bot
 	# may assume an identity within chat
-	
 	_login_with_credentials(credentials if credentials.token != "" else TwitchCredentials.get_fallback_credentials())
+
+func _login_with_credentials(credentials: TwitchCredentials):
+	if not socket:
+		return
+
+	socket.send_text("PASS %s" % credentials.get_password.call())
+	socket.send_text("NICK %s" % credentials.bot_id)
+	
 	var authed = await authenticated
 	if not authed:
 		push_error("Authentication failed")
 		connection_state = ConnectionState.FAILED
 		socket.close()
+		return
+		
+	_join_channel()
+	
+func _join_channel():
+	if not socket:
 		return
 
 	# join channels to listen to

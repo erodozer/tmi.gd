@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cbcvxtxvtlplo"]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="FontVariation" uid="uid://btfqwd4vt7ech" path="res://assets/pixel_font/pixel_font.tres" id="1_6qj4k"]
 [ext_resource type="Texture2D" uid="uid://cca7gqjkm3pma" path="res://components/chatbox/profile_image_mask.png" id="1_hj5fy"]

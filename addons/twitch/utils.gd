@@ -8,10 +8,21 @@ static func http_headers(headers: PackedStringArray):
 		
 	return out
 	
-static func load_animated(path: String) -> AnimatedTexture:
-	if ResourceLoader.has_cached(path + ".res"):
-		return load(path)
+static func fetch_animated(node: Node, path: String, url: String) -> AnimatedTexture:
+	var tex = load_animated(path)
+	if not tex:
+		var data = await fetch(node, url)
+		tex = save_animated(path, data)
+	return tex
+
+static func fetch_static(node: Node, path: String, url: String) -> Texture2D:
+	var tex = load_static(path)
+	if not tex:
+		var data = await fetch(node, url)
+		tex = save_static(path, data)
+	return tex
 	
+static func load_animated(path: String) -> AnimatedTexture:
 	if not FileAccess.file_exists(path):
 		return null
 	
@@ -65,5 +76,8 @@ static func fetch(n: Node, url: String, json = false):
 		return null
 	
 	var body = result[3] as PackedByteArray
+	if body and json:
+		body = body.get_string_from_utf8()
+		body = JSON.parse_string(body)
 	
-	return body if not json else JSON.parse_string(body.get_string_from_utf8())
+	return body
