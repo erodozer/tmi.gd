@@ -35,11 +35,22 @@ const SUBSCRIPTION_TYPES = [
 	},
 	# Shoutout
 	{
-		"channel.shoutout.create": "1",
+		"channel.shoutout.create": {
+			"version": "1",
+			"condition": {
+				"broadcaster_user_id": "broadcaster_user_id",
+				"moderator_user_id": "user_id",
+			}
+		},
 	},
 	# Raid
 	{
-		"channel.raid": "1"
+		"channel.raid": {
+			"version": "1",
+			"condition": {
+				"to_broadcaster_user_id": "broadcaster_user_id",
+			}
+		}
 	},
 	# Hype
 	{	

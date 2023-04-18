@@ -5,7 +5,7 @@ func handle_message(message, tmi: Tmi):
 		return
 
 	tmi.command.emit(
-		"redeem",
+		Tmi.EventType.REDEEM,
 		{
 			"user": {
 				"id": message.event.user_id,

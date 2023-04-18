@@ -295,7 +295,7 @@ layout_mode = 1
 anchors_preset = -1
 offset_left = -1350.0
 offset_right = -70.0
-offset_bottom = 220.0
+offset_bottom = 772.0
 theme_override_constants/separation = -48
 
 [node name="UserName" type="Label" parent="CanvasLayer/LabelAnchor/Message"]

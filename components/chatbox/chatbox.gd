@@ -19,7 +19,7 @@ func _spawn_chat(event):
 		if event.text.begins_with(i):
 			return
 	
-	if "sender" in event:
+	if "sender" in event and event.sender != null:
 		# do not render messages from ignored users
 		# required for filtering out known bot accounts in your channel
 		if event.sender.display_name in ignore_users:

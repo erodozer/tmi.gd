@@ -23,7 +23,7 @@ func _render_message(message: String, emotes: Dictionary, tmi: Tmi):
 		)
 		
 		stringReplacements.append({
-			"stringToReplace": "\b%s\b" % stringToReplace,
+			"stringToReplace": "%s" % stringToReplace,
 			"replacement": "[img=%d]%s[/img]" % [32, emote.texture.resource_path],
 		})
 	

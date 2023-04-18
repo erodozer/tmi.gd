@@ -1,6 +1,6 @@
 extends Node
 
-const GT2_GDO = preload("res://addons/gt2_importer/gdo.gd")
+const GT2_GDO = preload("res://addons/gt_importer/gdo.gd")
 
 @export var tmi: Tmi
 

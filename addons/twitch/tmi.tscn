@@ -18,7 +18,6 @@ script = ExtResource("2_vscsb")
 [node name="EventSub" type="Node" parent="."]
 script = ExtResource("3_7wtt0")
 listen_to = 127
-mode = "LOCAL"
 
 [node name="TwitchAPI" type="Node" parent="."]
 unique_name_in_owner = true
