@@ -16,8 +16,10 @@ unique_name_in_owner = true
 script = ExtResource("2_vscsb")
 
 [node name="EventSub" type="Node" parent="."]
+unique_name_in_owner = true
 script = ExtResource("3_7wtt0")
 listen_to = 127
+mode = "LOCAL"
 
 [node name="TwitchAPI" type="Node" parent="."]
 unique_name_in_owner = true
@@ -31,3 +33,7 @@ script = ExtResource("6_fk00d")
 
 [node name="PronounsAPI" type="Node" parent="."]
 script = ExtResource("5_20yfe")
+
+[connection signal="credentials_updated" from="." to="Irc" method="set_credentials"]
+[connection signal="credentials_updated" from="." to="EventSub" method="set_credentials"]
+[connection signal="credentials_updated" from="." to="TwitchAPI" method="set_credentials"]

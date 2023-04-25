@@ -11,7 +11,8 @@ enum ConnectionState {
 var credentials: TwitchCredentials
 var connection_state: ConnectionState = ConnectionState.NOT_STARTED
 
-# Called when the node enters the scene tree for the first time.
 func connect_to_server(soft = false):
 	pass
 
+func set_credentials(c: TwitchCredentials):
+	credentials = c

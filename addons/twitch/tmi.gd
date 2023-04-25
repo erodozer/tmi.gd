@@ -34,12 +34,11 @@ signal credentials_updated(credentials: TwitchCredentials)
 signal command(type, event)
 signal connection_status_changed(status: ConnectionStatus)
 
-func _set_credentials(credentials: TwitchCredentials):
+func _set_credentials(c: TwitchCredentials):
 	if credentials == null:
 		return
 		
-	self.credentials = credentials
-	twitch_api.credentials = credentials
+	credentials = c
 	
 	credentials_updated.emit(credentials)
 	

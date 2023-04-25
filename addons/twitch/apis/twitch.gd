@@ -18,6 +18,9 @@ func _ready():
 				await fetch_profile_image(profile)
 	)
 
+func set_credentials(c: TwitchCredentials):
+	credentials = c
+
 func http(command: String, credentials = self.credentials):
 	if credentials == null:
 		return null
@@ -51,7 +54,7 @@ func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	if credentials == null:
 		return null
 	if credentials.channel == "":
-		return null
+		return credentials
 	
 	var req = HTTPRequest.new()
 	add_child(req)
@@ -77,7 +80,7 @@ func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	
 	if status != 200:
 		push_error("twitch api returned code %d" % status)
-		return null
+		return credentials
 	
 	var body = JSON.parse_string(response[3].get_string_from_utf8())
 	

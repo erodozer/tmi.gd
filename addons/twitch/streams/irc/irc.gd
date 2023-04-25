@@ -74,6 +74,12 @@ func _process(_delta):
 func _setup_connection():
 	connection_state = ConnectionState.STARTING
 	
+	if credentials == null:
+		push_error("no config/credentials set to connect with")
+		connection_state = ConnectionState.FAILED
+		socket.close()
+		return
+	
 	if credentials.channel == "":
 		push_error("no channel to connect to")
 		connection_state = ConnectionState.FAILED
