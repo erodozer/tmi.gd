@@ -1,6 +1,2 @@
 # Godot 4+ specific ignores
 .godot/
-
-# gt2 data dumps
-# extract these from a legit copy of Gran Turismo 2 using https://github.com/adeyblue/GTVolTools
-assets/cars
