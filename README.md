@@ -7,8 +7,7 @@ homebrewed twitch integration for use in Godot games and applications
 [Gift](https://github.com/issork/gift) already exists and it does a pretty good job.  If you're looking to just dive into integration with your games, it's sufficient and I highly recommend just grabbing that.
 
 Simply, the reason for this implementation is personal.
-I wanted to replace my overlays written in HTML/CSS+JS for OBS in Godot for fun.  These Godot overlays are included in the project for demonstration purposes of the addon.
-This brought with it plenty of additional requirements that either aren't suitable for Gift, and Gift's architecture isn't elegant for extending and fast iteration.
+I wanted to replace my overlays written in HTML/CSS+JS for OBS in Godot for fun.  As such, the feature set of this integration is largely focused on one-directional consumption and tooling valueable for Streamers.  This focus brought with it plenty of additional requirements that either aren't suitable for Gift, and Gift's architecture isn't elegant for extending and fast iteration.
 
 The name comes from [tmi.js](https://tmijs.com/), which itself is named after [Twitch's IRC messaging interface](https://dev.twitch.tv/docs/irc/)
 
