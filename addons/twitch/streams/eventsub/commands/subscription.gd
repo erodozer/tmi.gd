@@ -9,6 +9,8 @@ class SubscriptionMessage:
 func handle_message(message, tmi: Tmi):
 	match message.notification_type:
 		"channel.subscribe:1":
+			if message.event.is_gift:
+				return
 			tmi.command.emit(
 				Tmi.EventType.SUBSCRIPTION,
 				{
@@ -21,6 +23,28 @@ func handle_message(message, tmi: Tmi):
 				}
 			)	
 		"channel.subscription.gift:1":
-			pass
+			tmi.command.emit(
+				Tmi.EventType.SUBSCRIPTION,
+				{
+					"user": {
+						"id": message.event.user_id,
+						"display_name": message.event.user_name if not message.event.is_anonymous else "Anonymous"
+					},
+					"is_gift": true,
+					"gifted": message.event.total,
+					"text": message.event.get("user_input", ""),
+				}
+			)	
 		"channel.subscription.message:1":
-			pass
+			tmi.command.emit(
+				Tmi.EventType.SUBSCRIPTION,
+				{
+					"user": {
+						"id": message.event.user_id,
+						"display_name": message.event.user_name
+					},
+					"is_gift": false,
+					"total": message.event.cumulative_months,
+					"text": message.event.get("user_input", ""),
+				}
+			)
