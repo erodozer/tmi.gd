@@ -3,7 +3,7 @@ extends TwitchEventStream
 
 const ENDPOINTS = {
 	"LIVE": {
-		"WEBSOCKET": "wss://eventsub-beta.wss.twitch.tv/ws",
+		"WEBSOCKET": "wss://eventsub.wss.twitch.tv/ws",
 		"SUBSCRIPTION": "https://api.twitch.tv/helix/eventsub/subscriptions"
 	},
 	"LOCAL": {

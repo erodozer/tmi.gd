@@ -35,7 +35,7 @@ signal command(type, event)
 signal connection_status_changed(status: ConnectionStatus)
 
 func _set_credentials(c: TwitchCredentials):
-	if credentials == null:
+	if c == null:
 		return
 		
 	credentials = c

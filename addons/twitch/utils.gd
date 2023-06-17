@@ -8,7 +8,7 @@ static func http_headers(headers: PackedStringArray):
 		
 	return out
 	
-static func fetch_animated(node: Node, path: String, url: String) -> AnimatedTexture:
+static func fetch_animated(node: Node, path: String, url: String) -> Texture2D:
 	var tex = load_animated(path)
 	if not tex:
 		var data = await fetch(node, url)
@@ -22,15 +22,22 @@ static func fetch_static(node: Node, path: String, url: String) -> Texture2D:
 		tex = save_static(path, data)
 	return tex
 	
-static func load_animated(path: String) -> AnimatedTexture:
+static func load_animated(path: String) -> Texture2D:
 	if not FileAccess.file_exists(path):
 		return null
 	
 	# load frames into AnimatedTexture
-	return ResourceLoader.load(path + ".res") as AnimatedTexture
+	var tex = ResourceLoader.load(path + ".res") as AnimatedTexture
+	if tex:
+		return tex
+
+	# fallback to static if animated texture does not exist
+	return load_static(path)
 	
 static func save_animated(path: String, buffer: PackedByteArray = []) -> AnimatedTexture:
-	return preload("res://addons/magick_dumps/magick.gd").dump_and_convert(path, buffer)
+	if ResourceLoader.exists("res://addons/magick_dumps/magick.gd"):
+		return load("res://addons/magick_dumps/magick.gd").dump_and_convert(path, buffer)
+	return save_static(path, buffer)
 	
 static func load_static(filepath: String) -> Texture2D:
 	if ResourceLoader.has_cached(filepath):

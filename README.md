@@ -14,7 +14,7 @@ The name comes from [tmi.js](https://tmijs.com/), which itself is named after [T
 ## What's unique about tmi.gd
 
 - IRC chat messages are preparsed and supplied as bbcode
-- Animated Emotes are supported (requires imagemagick on your PATH)
+- Animated Emotes are supported (requires imagemagick on your PATH and [magick_dumps][https://github.com/erodozer/magick-dumps])
 - Rich profile information and images are fetched for chatters through Twitch API
 - [Pronouns](http://pronouns.alejo.io/) support for profiles
 - Support for additional emotes from [7tv](https://7tv.app) and [BetterTTV](https://betterttv.com/)

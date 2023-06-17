@@ -6,7 +6,7 @@ const utils = preload("../utils.gd")
 var credentials: TwitchCredentials
 
 var _emotes = []
-var _profiles = []
+var _profiles = {}
 
 signal user_cached(profile)
 
@@ -18,11 +18,13 @@ func _ready():
 				await fetch_profile_image(profile)
 	)
 
-func set_credentials(c: TwitchCredentials):
-	credentials = c
+func set_credentials(newCredentials: TwitchCredentials):
+	credentials = newCredentials
 
 func http(command: String, credentials = self.credentials):
 	if credentials == null:
+		return null
+	if credentials.token == null or credentials.token == "":
 		return null
 	
 	var req = HTTPRequest.new()
@@ -54,6 +56,8 @@ func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	if credentials == null:
 		return null
 	if credentials.channel == "":
+		return credentials
+	if credentials.refresh_token == "":
 		return credentials
 	
 	var req = HTTPRequest.new()
@@ -93,10 +97,14 @@ func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	
 	# get user info for token provider
 	var user = await http("users", newCredentials)
-	newCredentials.user_id = user.data[0].id
-	newCredentials.bot_id = user.data[0].login
+	if user:
+		newCredentials.user_id = user.data[0].id
+		newCredentials.bot_id = user.data[0].login
 	var broadcaster = await http("users?login=%s" % newCredentials.channel, newCredentials)
-	newCredentials.broadcaster_user_id = broadcaster.data[0].id
+	if broadcaster:
+		newCredentials.broadcaster_user_id = broadcaster.data[0].id
+		
+	set_credentials(newCredentials)
 	
 	return newCredentials
 
@@ -157,10 +165,10 @@ func fetch_profile_image(profile: TwitchUserState):
 
 func fetch_user(user_id: String):
 	var path = "user://profile/%s.profile" % user_id
-	var profile = _profiles.filter(func (p): return p.id == user_id).front()
+	var profile = _profiles.get(user_id, null)
 	if profile:
 		if profile.expires_at < Time.get_unix_time_from_system():
-			_profiles.remove_at(_profiles.find(profile))
+			_profiles.erase(user_id)
 			profile = null
 		else:
 			return profile
@@ -188,7 +196,7 @@ func fetch_user(user_id: String):
 	profile.expires_at = Time.get_unix_time_from_system() + (15 * 60.0)
 
 	# add to cache so the profile doesn't get removed due to garbage collection
-	_profiles.append(profile)
+	_profiles[user_id] = profile
 	
 	user_cached.emit(profile)
 	await get_tree().process_frame
