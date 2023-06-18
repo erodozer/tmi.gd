@@ -46,6 +46,9 @@ func _render_message(message: String, emotes: Dictionary, tmi: Tmi):
 func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	if ircCommand.command != "PRIVMSG":
 		return
+		
+	if "custom-reward-id" in ircCommand.metadata and ircCommand.metadata["custom-reward-id"] != "":
+		return
 				
 	# convert metadata into dictionary
 	var result = PRIVMSG_PARSER.search(ircCommand.message)
