@@ -22,6 +22,7 @@ class EventType:
 @onready var irc: TwitchIrc = %Irc
 @onready var twitch_api: TwitchApi = %TwitchAPI
 
+var prev_connection_state
 var _emotes = []
 
 enum ConnectionStatus {
@@ -57,7 +58,7 @@ func _ready():
 		add_child(token_refresher)
 		token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
 		
-	var prev_connection_state = ConnectionStatus.NOT_CONNECTED
+	prev_connection_state = ConnectionStatus.NOT_CONNECTED
 	var connection_poller = Timer.new()
 	connection_poller.timeout.connect(
 		func():
