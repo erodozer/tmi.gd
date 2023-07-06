@@ -3,19 +3,18 @@ class_name BttvAPI
 
 const twitch_utils = preload("../utils.gd")
 
-func _ready():
-	var tmi = get_parent()
+@onready var tmi = get_parent()
 
-	await tmi.ready
-	tmi.command.connect(_on_room_state)
-
-func _on_room_state(type: String, evt):
+func _on_twitch_command(type, event):
 	if type != "roomstate":
 		return
 		
-	await preload_emotes(evt.channel_id)
+	await preload_emotes(event.channel_id)
 
 func preload_emotes(channel_id:String):
+	if not tmi.enable_bttv_emotes:
+		return
+	
 	var body = await twitch_utils.fetch(self,
 		"https://api.betterttv.net/3/cached/users/twitch/%s" % channel_id,
 		true
@@ -57,7 +56,6 @@ func preload_emotes(channel_id:String):
 				}
 			})
 	
-	var tmi = get_parent() as Tmi
 	tmi._emotes.append_array(acc)
 	tmi._emotes.sort_custom(
 		func (a, b):

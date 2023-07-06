@@ -2,19 +2,19 @@ extends Node
 
 const utils = preload("../utils.gd")
 
+@onready var tmi: Tmi = get_parent()
+
 var _pronouns = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	_pronouns = await utils.fetch(self, "https://pronouns.alejo.io/api/pronouns", true)
-	var tmi = get_parent()
-	tmi.twitch_api.user_cached.connect(
-		func(profile):
-			if tmi.include_pronouns:
-				await fetch_pronouns_for_user(profile) # uses login id instead of user id
-	)
+	if tmi.include_pronouns:
+		_pronouns = await utils.fetch(self, "https://pronouns.alejo.io/api/pronouns", true)
 
 func fetch_pronouns_for_user(profile: TwitchUserState):
+	if not tmi.include_pronouns:
+		return
+		
 	profile.loading["pronouns"] = true
 	var result = await utils.fetch(self, "https://pronouns.alejo.io/api/users/%s" % profile.display_name, true)
 	
@@ -30,3 +30,6 @@ func fetch_pronouns_for_user(profile: TwitchUserState):
 		profile.extra["pronouns"] = pronoun.display
 		
 	profile.loading.erase("pronouns")
+
+func _on_twitch_api_user_cached(profile):
+	await fetch_pronouns_for_user(profile) # uses login id instead of user id

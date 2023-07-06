@@ -34,6 +34,9 @@ script = ExtResource("6_fk00d")
 [node name="PronounsAPI" type="Node" parent="."]
 script = ExtResource("5_20yfe")
 
+[connection signal="command" from="." to="7tvAPI" method="_on_twitch_command"]
+[connection signal="command" from="." to="BttvAPI" method="_on_twitch_command"]
 [connection signal="credentials_updated" from="." to="Irc" method="set_credentials"]
 [connection signal="credentials_updated" from="." to="EventSub" method="set_credentials"]
 [connection signal="credentials_updated" from="." to="TwitchAPI" method="set_credentials"]
+[connection signal="user_cached" from="TwitchAPI" to="PronounsAPI" method="_on_twitch_api_user_cached"]
