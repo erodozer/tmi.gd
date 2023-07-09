@@ -117,11 +117,6 @@ func _ready():
 	add_child(keep_alive_timer)
 	
 func connect_to_server(soft = false):
-	if credentials == null:
-		return
-	if credentials.user_id == "":
-		return
-
 	# do not start up the socket on soft connects
 	if soft and socket == null:
 		return
@@ -134,7 +129,12 @@ func connect_to_server(soft = false):
 	if socket:
 		socket.close()
 		socket = null
-		
+	
+	if credentials == null:
+		return
+	if credentials.user_id == "":
+		return
+	
 	connection_state = ConnectionState.NOT_STARTED
 	
 	socket = WebSocketPeer.new()

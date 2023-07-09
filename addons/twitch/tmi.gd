@@ -73,7 +73,7 @@ func _ready():
 func start(soft = false):
 	for i in get_children():
 		if i is TwitchEventStream:
-			i.credentials = credentials
+			i.set_credentials(credentials)
 			i.connect_to_server(soft)
 
 func connection_state() -> ConnectionStatus:
@@ -88,3 +88,7 @@ func connection_state() -> ConnectionStatus:
 		return ConnectionStatus.PARTIAL
 	
 	return ConnectionStatus.NOT_CONNECTED
+
+func _exit_tree():
+	credentials = null
+	start() # close connection when exiting the app
