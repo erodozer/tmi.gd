@@ -5,39 +5,21 @@ const twitch_utils = preload("../utils.gd")
 
 @onready var tmi: Tmi = get_parent()
 
-func _ready():
-	await tmi.ready
-	tmi.command.connect(_on_room_state)
-
-func _on_room_state(type: String, evt):
+func _on_twitch_command(type: String, evt):
 	if type != "roomstate":
 		return
 		
 	tmi._load_stack["bttv"] = true
+	print("downloading bttv emotes")
+	await preload_global_emotes()
 	await preload_emotes(evt.channel_id)
 	tmi._load_stack.erase("bttv")
-
-func preload_emotes(channel_id:String):
-	var body = await twitch_utils.fetch(self,
-		"https://api.betterttv.net/3/cached/users/twitch/%s" % channel_id,
-		true
-	)
-	if body == null:
-		push_warning("Unable to fetch Bttv emotes for channel %s" % channel_id)
-		return
 	
-	var emotes = []
-	if body.channelEmotes:
-		emotes.append_array(body.channelEmotes)
-	if body.sharedEmotes:
-		emotes.append_array(body.sharedEmotes)
+func fetch_emote_images(emotes):
+	if len(emotes) == 0:
+		return []
 		
 	var acc = []
-	
-	if len(emotes) == 0:
-		return
-		
-	print("downloading bttv emotes")
 	for e in emotes:
 		var id = e.id
 		var name = e.code
@@ -70,3 +52,39 @@ func preload_emotes(channel_id:String):
 		func (a, b):
 			return len(a.code) > len(b.code)
 	)
+
+	return acc
+	
+func preload_global_emotes():
+	var body = await twitch_utils.fetch(self,
+		"https://api.betterttv.net/3/cached/emotes/global",
+		true
+	)
+	if body == null:
+		push_warning("Unable to fetch global Bttv emotes")
+		return
+	
+	var emotes = body
+	
+	await fetch_emote_images(emotes)
+
+func preload_emotes(channel_id:String):
+	var body = await twitch_utils.fetch(self,
+		"https://api.betterttv.net/3/cached/users/twitch/%s" % channel_id,
+		true
+	)
+	if body == null:
+		push_warning("Unable to fetch Bttv emotes for channel %s" % channel_id)
+		return
+	
+	var emotes = []
+	if body.channelEmotes:
+		emotes.append_array(body.channelEmotes)
+	if body.sharedEmotes:
+		emotes.append_array(body.sharedEmotes)
+		
+	if len(emotes) == 0:
+		return
+	
+	await fetch_emote_images(emotes)
+		

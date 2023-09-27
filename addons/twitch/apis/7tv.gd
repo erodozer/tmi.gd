@@ -5,11 +5,7 @@ const twitch_utils = preload("../utils.gd")
 
 @onready var tmi: Tmi = get_parent()
 
-func _ready():
-	await tmi.ready
-	tmi.command.connect(_on_room_state)
-
-func _on_room_state(type: String, evt):
+func _on_twitch_command(type: String, evt):
 	if type != "roomstate":
 		return
 		
