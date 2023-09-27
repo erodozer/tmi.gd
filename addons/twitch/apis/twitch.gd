@@ -52,6 +52,57 @@ func http(command: String, credentials = self.credentials):
 	
 	return JSON.parse_string(body.get_string_from_utf8())
 
+func code_to_token(code: String, redirect_uri: String, credentials: TwitchCredentials) -> TwitchCredentials:
+	var req = HTTPRequest.new()
+	add_child(req)
+	var err = req.request(
+		"https://id.twitch.tv/oauth2/token",
+		PackedStringArray([
+			"Content-Type: application/x-www-form-urlencoded",
+		]),
+		HTTPClient.METHOD_POST,
+		"grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s" % [
+			credentials.client_id,
+			credentials.client_secret,
+			code,
+			redirect_uri
+		],
+	)
+	if err != OK:
+		req.queue_free()
+		push_error("Unable to make twitch api request")
+		return credentials
+	
+	var response = await req.request_completed
+	var status = response[1]
+	req.queue_free()
+	
+	var body = JSON.parse_string(response[3].get_string_from_utf8())
+	
+	if status != 200:
+		push_error("twitch api returned code %d" % status)
+		return credentials
+	
+	var newCredentials = TwitchCredentials.new()
+	newCredentials.channel = credentials.channel
+	newCredentials.client_id = credentials.client_id
+	newCredentials.client_secret = credentials.client_secret
+	newCredentials.token = body.access_token
+	newCredentials.refresh_token = body.refresh_token
+	
+	# get user info for token provider
+	var user = await http("users", newCredentials)
+	if user:
+		newCredentials.user_id = user.data[0].id
+		newCredentials.bot_id = user.data[0].login
+	var broadcaster = await http("users?login=%s" % newCredentials.channel, newCredentials)
+	if broadcaster:
+		newCredentials.broadcaster_user_id = broadcaster.data[0].id
+		
+	set_credentials(newCredentials)
+	
+	return newCredentials
+
 func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 	if credentials == null:
 		return null
@@ -75,6 +126,7 @@ func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
 		],
 	)
 	if err != OK:
+		req.queue_free()
 		push_error("Unable to make twitch api request")
 		return
 		
@@ -136,9 +188,9 @@ func fetch_twitch_emote(emote: String):
 		
 		match type:
 			"static":
-				return utils.save_static("user://emotes/%s.png" % emote_id, body)
+				return await utils.save_static("user://emotes/%s.png" % emote_id, body)
 			"animated":
-				return utils.save_animated("user://emotes/%s.gif" % emote_id, body)
+				return await utils.save_animated("user://emotes/%s.gif" % emote_id, body)
 	
 	return null
 

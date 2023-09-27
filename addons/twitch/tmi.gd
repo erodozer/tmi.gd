@@ -22,7 +22,7 @@ class EventType:
 @onready var irc: TwitchIrc = %Irc
 @onready var twitch_api: TwitchApi = %TwitchAPI
 
-var prev_connection_state
+var _load_stack = {}
 var _emotes = []
 
 enum ConnectionStatus {
@@ -58,7 +58,7 @@ func _ready():
 		add_child(token_refresher)
 		token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
 		
-	prev_connection_state = ConnectionStatus.NOT_CONNECTED
+	var prev_connection_state = ConnectionStatus.NOT_CONNECTED
 	var connection_poller = Timer.new()
 	connection_poller.timeout.connect(
 		func():
@@ -73,7 +73,7 @@ func _ready():
 func start(soft = false):
 	for i in get_children():
 		if i is TwitchEventStream:
-			i.set_credentials(credentials)
+			i.credentials = credentials
 			i.connect_to_server(soft)
 
 func connection_state() -> ConnectionStatus:
@@ -88,7 +88,3 @@ func connection_state() -> ConnectionStatus:
 		return ConnectionStatus.PARTIAL
 	
 	return ConnectionStatus.NOT_CONNECTED
-
-func _exit_tree():
-	credentials = null
-	start() # close connection when exiting the app

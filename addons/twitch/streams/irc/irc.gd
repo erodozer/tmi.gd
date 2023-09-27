@@ -39,9 +39,6 @@ func connect_to_server(soft = false):
 	if socket:
 		socket.close()
 		socket = null
-		
-	if credentials == null:
-		return
 	
 	connection_state = ConnectionState.NOT_STARTED
 	socket = WebSocketPeer.new()
@@ -72,7 +69,7 @@ func _process(_delta):
 		var reason = socket.get_close_reason()
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 		set_process(false) # Stop processing.
-	
+		socket = null
 	
 func _setup_connection():
 	connection_state = ConnectionState.STARTING

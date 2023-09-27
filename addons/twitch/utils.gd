@@ -1,5 +1,7 @@
 extends Object
 
+static var magick_loader
+
 static func http_headers(headers: PackedStringArray):
 	var out = {}
 	for header in headers:
@@ -8,30 +10,34 @@ static func http_headers(headers: PackedStringArray):
 		
 	return out
 	
-static func fetch_animated(node: Node, path: String, url: String) -> AnimatedTexture:
-	var tex = load_animated(path)
-	if not tex:
+static func fetch_animated(node: Node, path: String, url: String) -> Texture2D:
+	var tex = await load_animated(path)
+	if tex == null:
 		var data = await fetch(node, url)
-		tex = save_animated(path, data)
+		tex = await save_animated(path, data)
+	assert(tex != null, "failed to load image")
 	return tex
 
 static func fetch_static(node: Node, path: String, url: String) -> Texture2D:
-	var tex = load_static(path)
-	if not tex:
+	var tex = await load_static(path)
+	if tex == null:
 		var data = await fetch(node, url)
-		tex = save_static(path, data)
+		tex = await save_static(path, data)
 	return tex
 	
 static func load_animated(path: String) -> AnimatedTexture:
-	if not FileAccess.file_exists(path):
+	if not FileAccess.file_exists(path + ".res"):
 		return null
 	
 	# load frames into AnimatedTexture
 	return ResourceLoader.load(path + ".res") as AnimatedTexture
 	
-static func save_animated(path: String, buffer: PackedByteArray = []) -> AnimatedTexture:
+static func save_animated(path: String, buffer: PackedByteArray = []) -> Texture2D:
 	if ResourceLoader.exists("res://addons/magick_dumps/magick.gd"):
-		return load("res://addons/magick_dumps/magick.gd").dump_and_convert(path, buffer)
+		if magick_loader == null:
+			magick_loader = load("res://addons/magick_dumps/magick.gd").new()
+		var tex = await magick_loader.dump_and_convert(path, buffer, "%s.res" % path, true)
+		return tex
 	return save_static(path, buffer)
 	
 static func load_static(filepath: String) -> Texture2D:

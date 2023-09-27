@@ -3,18 +3,21 @@ class_name BttvAPI
 
 const twitch_utils = preload("../utils.gd")
 
-@onready var tmi = get_parent()
+@onready var tmi: Tmi = get_parent()
 
-func _on_twitch_command(type, event):
+func _ready():
+	await tmi.ready
+	tmi.command.connect(_on_room_state)
+
+func _on_room_state(type: String, evt):
 	if type != "roomstate":
 		return
 		
-	await preload_emotes(event.channel_id)
+	tmi._load_stack["bttv"] = true
+	await preload_emotes(evt.channel_id)
+	tmi._load_stack.erase("bttv")
 
 func preload_emotes(channel_id:String):
-	if not tmi.enable_bttv_emotes:
-		return
-	
 	var body = await twitch_utils.fetch(self,
 		"https://api.betterttv.net/3/cached/users/twitch/%s" % channel_id,
 		true
@@ -31,6 +34,10 @@ func preload_emotes(channel_id:String):
 		
 	var acc = []
 	
+	if len(emotes) == 0:
+		return
+		
+	print("downloading bttv emotes")
 	for e in emotes:
 		var id = e.id
 		var name = e.code
@@ -46,6 +53,7 @@ func preload_emotes(channel_id:String):
 			tex = await twitch_utils.fetch_animated(self, path, url)
 		else:
 			tex = await twitch_utils.fetch_static(self, path, url)
+		assert(tex != null, "failed to load image")
 		if tex:
 			acc.append({
 				"code": name,
@@ -56,6 +64,7 @@ func preload_emotes(channel_id:String):
 				}
 			})
 	
+	var tmi = get_parent() as Tmi
 	tmi._emotes.append_array(acc)
 	tmi._emotes.sort_custom(
 		func (a, b):

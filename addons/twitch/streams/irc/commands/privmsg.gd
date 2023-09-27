@@ -49,7 +49,11 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 		
 	if "custom-reward-id" in ircCommand.metadata and ircCommand.metadata["custom-reward-id"] != "":
 		return
-				
+		
+	# ignore messages until other resources are loaded
+	if not tmi._load_stack.is_empty():
+		return
+		
 	# convert metadata into dictionary
 	var result = PRIVMSG_PARSER.search(ircCommand.message)
 	if not result:

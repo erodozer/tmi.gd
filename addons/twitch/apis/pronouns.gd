@@ -21,13 +21,14 @@ func fetch_pronouns_for_user(profile: TwitchUserState):
 	if result == null:
 		result = []
 	
-	var user_pronoun = result.front()
-	if user_pronoun:
-		user_pronoun = user_pronoun.pronoun_id
-		
-	if user_pronoun:
-		var pronoun = _pronouns.filter(func (p): return p.name == user_pronoun).front()
-		profile.extra["pronouns"] = pronoun.display
+	if len(result) > 0:
+		var user_pronoun = result.front()
+		if user_pronoun:
+			user_pronoun = user_pronoun.pronoun_id
+			
+		if user_pronoun:
+			var pronoun = _pronouns.filter(func (p): return p.name == user_pronoun).front()
+			profile.extra["pronouns"] = pronoun.display
 		
 	profile.loading.erase("pronouns")
 

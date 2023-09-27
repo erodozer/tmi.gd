@@ -3,18 +3,21 @@ class_name TmiAPI7tv
 
 const twitch_utils = preload("../utils.gd")
 
-@onready var tmi = get_parent()
+@onready var tmi: Tmi = get_parent()
 
-func _on_twitch_command(type, event):
+func _ready():
+	await tmi.ready
+	tmi.command.connect(_on_room_state)
+
+func _on_room_state(type: String, evt):
 	if type != "roomstate":
 		return
 		
-	await preload_emotes(event.channel_id)
+	tmi._load_stack["7tv"] = true
+	await preload_emotes(evt.channel_id)
+	tmi._load_stack.erase("7tv")
 
 func preload_emotes(channel_id:String):
-	if not tmi.enable_7tv_emotes:
-		return
-	
 	var body = await twitch_utils.fetch(self,
 		"https://7tv.io/v3/users/twitch/%s" % channel_id,
 		true
@@ -51,18 +54,19 @@ func preload_emotes(channel_id:String):
 				"user://emotes/7tv_%s.webp" % id,
 				url,
 			)
-			acc.append({
-				"code": name,
-				"texture": tex,
-				"dimensions": {
-					"width": image.width,
-					"height": image.height
-				}
-			})
+			if tex != null:
+				acc.append({
+					"code": name,
+					"texture": tex,
+					"dimensions": {
+						"width": image.width,
+						"height": image.height
+					}
+				})
 	
+	var tmi = get_parent() as Tmi
 	tmi._emotes.append_array(acc)
 	tmi._emotes.sort_custom(
 		func (a, b):
 			return len(a.code) > len(b.code)
 	)
-
