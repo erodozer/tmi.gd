@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://d3r7gwv5bhvmk"]
+
+[ext_resource type="PackedScene" uid="uid://cmfr6463oc3to" path="res://addons/tmi/tmi.tscn" id="1_0nacd"]
+[ext_resource type="PackedScene" uid="uid://2hx3mbwdlv1w" path="res://example/control_panel/control_panel.tscn" id="1_hc6cj"]
+[ext_resource type="PackedScene" uid="uid://ry571ddp7oys" path="res://example/chat/chat.tscn" id="3_y7inn"]
+
+[node name="Node" type="Node"]
+
+[node name="Twitch" parent="." instance=ExtResource("1_0nacd")]
+channels = Array[String](["amour"])
+
+[node name="Example" type="HBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ControlPanel" parent="Example" instance=ExtResource("1_hc6cj")]
+layout_mode = 2
+
+[node name="Chat" parent="Example" instance=ExtResource("3_y7inn")]
+visible = false
+layout_mode = 2
+
+[connection signal="command" from="Twitch" to="Example/Chat" method="_on_twitch_command"]

@@ -13,9 +13,41 @@ The name comes from [tmi.js](https://tmijs.com/), which itself is named after [T
 
 ## What's unique about tmi.gd
 
-- IRC chat messages are preparsed and supplied as bbcode
-- Animated Emotes are supported (requires imagemagick on your PATH and [magick_dumps][https://github.com/erodozer/magick-dumps])
+- Supports using IRC or EventSub
+    - automatically uses IRC for unauthenticated sessions
+    - uses EventSub when credentials are supplied
+- Chat messages are preparsed and supplied as bbcode
+- Animated Emotes are supported (requires imagemagick on your PATH and [magick_dumps](https://github.com/erodozer/magick-dumps)
 - Rich profile information and images are fetched for chatters through Twitch API
 - [Pronouns](http://pronouns.alejo.io/) support for profiles
 - Support for additional emotes from [7tv](https://7tv.app) and [BetterTTV](https://betterttv.com/)
 - Automatic token refreshing
+- Anonymous session support for clients that need IRC chat consumption without EventSub features
+
+## Requirements
+- Godot 4.x
+- GodotHttpServer (optional)
+- magick_dumps (optional)
+
+## Getting Started
+
+Tmi.gd includes a basic Scene file of a Tmi client.  For applications that require only a single connection to Tmi, you may add this file as a Singleton/Autoload to your project.  It will include all the features available out of the box for you.
+
+On application startup, you may supply credentials to it however you like.  A convenience function is supplied to generate credentials from your project settings.
+
+The following settings need to be defined in your Project
+```
+application\tmi\twitch_client_id
+application\tmi\twitch_client_secret
+```
+
+```gdscript
+func _ready():
+  var credentials = TwitchCredentials.load_from_project_settings()
+
+  Tmi.credentials = credentials
+  Tmi.listen_to_channel("my_channel_name")
+  Tmi.start()
+```
+
+For more rich examples of how to integrate Tmi into your Godot project, and alternative ways to initialize a client, please read the included documentation or sample project.

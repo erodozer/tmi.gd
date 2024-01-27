@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://65re7r8xy01i"]
+
+[node name="ChatMessage" type="RichTextLabel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true

@@ -1,0 +1,267 @@
+extends TmiService
+class_name TmiTwitchService
+
+const utils = preload("../utils.gd")
+
+@export var include_profile_images = true
+
+var credentials: TwitchCredentials
+
+var _emotes = []
+var _profiles = {}
+
+signal user_cached(profile)
+
+func _ready():
+	var tmi = get_parent()
+	
+	var token_refresher = Timer.new()
+	token_refresher.timeout.connect(
+		func():
+			if tmi.credentials != null:
+				tmi.credentials = await refresh_token(tmi.credentials)
+			return
+	)
+	add_child(token_refresher)
+	token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
+
+func http(command: String, credentials = tmi.credentials):
+	if credentials == null:
+		return null
+	if credentials.token == null or credentials.token == "":
+		return null
+	
+	var req = HTTPRequest.new()
+	add_child(req)
+	var err = req.request(
+		"https://api.twitch.tv/helix/%s" % command,
+		PackedStringArray([
+			"Authorization: Bearer %s" % [credentials.token],
+			"Client-Id: %s" % [credentials.client_id]
+		])
+	)
+	if err != OK:
+		push_error("Unable to make twitch api request")
+		return
+		
+	var response = await req.request_completed
+	var status = response[1]
+	req.queue_free()
+	
+	if status != 200:
+		push_error("twitch api returned code %d" % status)
+		return null
+	
+	var body:PackedByteArray = response[3]
+	
+	return JSON.parse_string(body.get_string_from_utf8())
+
+func code_to_token(code: String, redirect_uri: String, credentials: TwitchCredentials) -> TwitchCredentials:
+	var req = HTTPRequest.new()
+	add_child(req)
+	var err = req.request(
+		"https://id.twitch.tv/oauth2/token",
+		PackedStringArray([
+			"Content-Type: application/x-www-form-urlencoded",
+		]),
+		HTTPClient.METHOD_POST,
+		"grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s" % [
+			credentials.client_id,
+			credentials.client_secret,
+			code,
+			redirect_uri
+		],
+	)
+	if err != OK:
+		req.queue_free()
+		push_error("Unable to make twitch api request")
+		return credentials
+	
+	var response = await req.request_completed
+	var status = response[1]
+	req.queue_free()
+	
+	var body = JSON.parse_string(response[3].get_string_from_utf8())
+	
+	if status != 200:
+		push_error("twitch api returned code %d" % status)
+		return credentials
+	
+	var newCredentials = TwitchCredentials.new()
+	newCredentials.channel = credentials.channel
+	newCredentials.client_id = credentials.client_id
+	newCredentials.client_secret = credentials.client_secret
+	newCredentials.token = body.access_token
+	newCredentials.refresh_token = body.refresh_token
+	
+	# get user info for token provider
+	var user = await http("users", newCredentials)
+	if user:
+		newCredentials.user_id = user.data[0].id
+		newCredentials.bot_id = user.data[0].login
+	var broadcaster = await http("users?login=%s" % newCredentials.channel, newCredentials)
+	if broadcaster:
+		newCredentials.broadcaster_user_id = broadcaster.data[0].id
+		
+	tmi.credentials = newCredentials
+	
+	return newCredentials
+
+func refresh_token(credentials: TwitchCredentials) -> TwitchCredentials:
+	if credentials == null:
+		return null
+	if credentials.channel == "":
+		return credentials
+	if credentials.refresh_token == "":
+		return credentials
+	
+	var req = HTTPRequest.new()
+	add_child(req)
+	var err = req.request(
+		"https://id.twitch.tv/oauth2/token",
+		PackedStringArray([
+			"Content-Type: application/x-www-form-urlencoded",
+		]),
+		HTTPClient.METHOD_POST,
+		"grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s" % [
+			credentials.client_id,
+			credentials.client_secret,
+			credentials.refresh_token,
+		],
+	)
+	if err != OK:
+		req.queue_free()
+		push_error("Unable to make twitch api request")
+		return
+		
+	var response = await req.request_completed
+	var status = response[1]
+	req.queue_free()
+	
+	if status != 200:
+		push_error("twitch api returned code %d" % status)
+		return credentials
+	
+	var body = JSON.parse_string(response[3].get_string_from_utf8())
+	
+	var newCredentials = TwitchCredentials.new()
+	newCredentials.channel = credentials.channel
+	newCredentials.client_id = credentials.client_id
+	newCredentials.client_secret = credentials.client_secret
+	newCredentials.token = body.access_token
+	newCredentials.refresh_token = body.refresh_token
+	
+	# get user info for token provider
+	var user = await http("users", newCredentials)
+	if user:
+		newCredentials.user_id = user.data[0].id
+		newCredentials.bot_id = user.data[0].login
+	var broadcaster = await http("users?login=%s" % newCredentials.channel, newCredentials)
+	if broadcaster:
+		newCredentials.broadcaster_user_id = broadcaster.data[0].id
+		
+	tmi.credentials = newCredentials
+	
+	return newCredentials
+
+## prefetch emote images and cache them to local storage
+func fetch_twitch_emote(emote: String):
+	var data = emote.split(":")
+	var emote_id = data[0]
+	
+	var tex = utils.load_animated("user://emotes/%s.gif" % emote_id)
+	if not tex:
+		tex = utils.load_static("user://emotes/%s.png" % emote_id)
+	
+	if tex:
+		return tex
+		
+	print("new emote encountered: %s" % emote_id)
+	
+	# Create an HTTP request node and connect its completion signal.
+	
+	# Perform the HTTP request
+	# first we try to get an animated version if it exists
+	# else we'll fall back to static png
+	for type in ["animated", "static"]:
+		var url = "https://static-cdn.jtvnw.net/emoticons/v2/%s/%s/dark/3.0" % [emote_id, type]
+		
+		var body = await utils.fetch(self, url)
+		if body == null:
+			continue
+		
+		match type:
+			"static":
+				return await utils.save_static("user://emotes/%s.png" % emote_id, body)
+			"animated":
+				return await utils.save_animated("user://emotes/%s.gif" % emote_id, body)
+	
+	return null
+
+func fetch_profile_image(profile: TmiUserState):
+	var profile_image = utils.load_animated("user://profile_images/%s" % profile.id)
+	if not profile_image:
+		profile_image = utils.load_static("user://profile_images/%s.png" % profile.id)
+		
+	var url = profile.extra.profile_image_url as String
+	if not profile_image and url:
+		var body = await utils.fetch(self, url)
+		var extension = url.get_extension()
+		if body:
+			DirAccess.make_dir_recursive_absolute("user://profile_images/")
+			match extension:
+				"png":
+					profile_image = await utils.save_static("user://profile_images/%s.png" % profile.id, body)
+				_:
+					profile_image = await utils.save_animated("user://profile_images/%s" % profile.id, body)
+			
+	profile.extra["profile_image"] = profile_image
+	
+func enrich(obj: TmiAsyncState):
+	if obj is TmiUserState:
+		await fetch_user(obj)
+
+func fetch_user(profile: TmiUserState):
+	var path = "user://profile/%s.profile" % baseProfile.user_id
+	var cached = _profiles.get(baseProfile.user_id, null)
+	if cached:
+		if cached.expires_at < Time.get_unix_time_from_system():
+			_profiles.erase(user_id)
+		else:
+			profile.display_name = cached.display_name
+			profile.extra["profile_image_url"] = cached.extra["profile_image_url"]
+			if include_profile_images and cached.extra["profile_image"] == null:
+				await fetch_profile_image(cached)
+			profile.extra["profile_image"] = cached.extra.get("profile_image", null)
+			return
+	
+	var result = await http("users?id=%s" % user_id)
+	if result == null:
+		return
+	
+	var users = result.get("data", [])
+	var found_data = null
+	for user in users:
+		if user.id == user_id:
+			found_data = user
+			break
+			
+	if found_data == null:
+		return
+			
+	profile = TwitchUserState.new()
+	profile.id = user_id
+	profile.display_name = found_data.login
+	profile.extra["profile_image_url"] = found_data.profile_image_url
+	
+	if include_profile_images:
+		await fetch_profile_image(profile)
+
+	# mark profile for cache expiration after a certain amount of time
+	profile.expires_at = Time.get_unix_time_from_system() + (15 * 60.0)
+
+	# add to cache so the profile doesn't get removed due to garbage collection
+	_profiles[user_id] = profile
+	
+	user_cached.emit(profile)
+	
