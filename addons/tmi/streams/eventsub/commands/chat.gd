@@ -6,6 +6,22 @@ func handle_message(message, tmi: Tmi):
 			pass
 		"channel.chat.message:1":
 			handle_chat_message(message, tmi)
+		"channel.chat.message_delete:1":
+			tmi.command.emit(
+				Tmi.EventType.DELETE_MESSAGE,
+				{
+					"channel": message.event.broadcaster_user_login,
+					"message": message.event.message_id,
+				}
+			)
+		"channel.chat.clear_user_messages:1":
+			tmi.command.emit(
+				Tmi.EventType.USER_DELETED,
+				{
+					"channel": message.event.broadcaster_user_login,
+					"user": message.event.target_user_id,
+				}
+			)
 			
 func _render_message(fragments, tmi):
 	var bbcode = []

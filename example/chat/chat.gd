@@ -4,6 +4,18 @@ const ChatMessage = preload("./chat_message.tscn")
 const HISTORY_LIMIT = 100
 
 func _on_twitch_command(type, event):
+	if type == Tmi.EventType.DELETE_MESSAGE:
+		var m = %History.get_node(event.message)
+		if m:
+			m.queue_free()
+		return
+		
+	if type == Tmi.EventType.USER_DELETED:
+		for c in %History.get_children():
+			if c.get_meta("user") == event.user:
+				c.queue_free()
+		return
+	
 	if type != Tmi.EventType.CHAT_MESSAGE:
 		return
 		
