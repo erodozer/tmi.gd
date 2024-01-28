@@ -99,6 +99,16 @@ func enrich(obj: TmiAsyncState):
 		await obj.loaded
 
 func login(credentials: TwitchCredentials):
+	if not credentials.client_id:
+		print("[tmi/oauth]: Client Id not provided, assuming unauthenticated session")
+		set_credentials(credentials)
+		return
+
+	if credentials.token:
+		push_warning("[tmi/oauth]: Access token provided, assuming authenticated session")
+		set_credentials(credentials)
+		return
+	
 	var oauth = get_node("OAuth")
 	if oauth == null:
 		push_error("Can not login to Twitch, Tmi is missing OAuth service child")

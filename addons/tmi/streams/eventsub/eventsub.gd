@@ -166,13 +166,15 @@ func connect_to_server():
 	
 	# create websocket connection to twitch irc endpoitn
 	socket.connect_to_url(ENDPOINTS[mode].WEBSOCKET)
-	set_process(true)
 	
 func close_stream():
 	if socket:
+		print("[tmi/sub] closing stream")
 		socket.close()
 		socket = null
-		set_process(false)
+	
+	if connection_state != ConnectionState.FAILED:
+		connection_state = ConnectionState.NOT_STARTED
 	
 func _process(_delta):
 	for socket in [self.socket, reconnect_socket]:
@@ -238,7 +240,7 @@ func request_permission(permission, details):
 		true
 	)
 	
-	return result.code < 300 or result.code == 409
+	return [result.code < 300 or result.code == 409, result.code]
 	
 func _setup_connection():
 	print("[tmi/sub]: connection established")
@@ -252,8 +254,13 @@ func _setup_connection():
 		for subscription in SUBSCRIPTION_TYPES[i]:
 			var version = SUBSCRIPTION_TYPES[i][subscription]
 			var success = await request_permission(subscription, version)
-			if not success:
+			if not success[0]:
 				push_error("Authentication failed for %s, disabling message type" % subscription)
+				if success[1] == 401:
+					push_error("Invalid token, consider refreshing or clearing credentials")
+					connection_state = ConnectionState.FAILED
+					close_stream()
+					return
 
 	print("[tmi/sub]: we're in 😎")
 	

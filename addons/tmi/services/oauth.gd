@@ -97,7 +97,6 @@ func _stop_server():
 	if peer == null:
 		return
 	
-	credentials = null
 	peer.disconnect_from_host()
 	peer = null
 
@@ -184,6 +183,23 @@ func _send_response(status_code: String, body: String):
 	peer.disconnect_from_host()
 	peer = null
 	
+func _lookup_channel(access_token):
+	var broadcaster = await utils.fetch(
+		self,
+		"https://api.twitch.tv/helix/users",
+		HTTPClient.METHOD_GET,
+		{
+			"Authorization": "Bearer %s" % access_token,
+			"Client-Id": credentials.client_id,
+		},
+		{
+			"login": credentials.channel,
+		},
+		true,
+	)
+	
+	return broadcaster.data.data[0].id
+	
 func _code_to_token(code: String):
 	var result = await utils.fetch(
 		self,
@@ -223,27 +239,14 @@ func _code_to_token(code: String):
 	)
 	
 	newCredentials.user_id = payload.data.sub
-	
-	var broadcaster = await utils.fetch(
-		self,
-		"https://api.twitch.tv/helix/users",
-		HTTPClient.METHOD_GET,
-		{
-			"Authorization": "Bearer %s" % body.access_token,
-			"Client-Id": credentials.client_id,
-		},
-		{
-			"login": credentials.channel,
-		},
-		true,
-	)
-	
-	newCredentials.channel = credentials.channel
-	newCredentials.broadcaster_user_id = broadcaster.data.data[0].id
+	newCredentials.user_login = payload.data.get("preferred_username", "").to_lower()
 	newCredentials.profile = {
 		"display_name": payload.data.get("preferred_username", ""),
 		"image": payload.data.get("picture", "")
 	}
+	
+	newCredentials.channel = credentials.channel
+	newCredentials.broadcaster_user_id = await _lookup_channel(body.access_token)
 	
 	tmi.set_credentials(newCredentials)
 	
@@ -255,12 +258,17 @@ func _idtoken_credentials(id_token, access_token):
 	
 	var newCredentials = TwitchCredentials.new()
 	newCredentials.user_id = payload.sub
+	newCredentials.user_login = payload.get("preferred_username" ,"").to_lower()
 	newCredentials.profile = {
 		"display_name": payload.get("preferred_username" ,""),
 		"image": payload.get("picture", ""),
 	}
-	newCredentials.channel = payload.preferred_username
-	newCredentials.broadcaster_user_id = payload.sub
+	if credentials.channel:
+		newCredentials.channel = credentials.channel
+		newCredentials.broadcaster_user_id = await _lookup_channel(access_token)
+	else:
+		newCredentials.channel = payload.preferred_username
+		newCredentials.broadcaster_user_id = payload.sub
 	newCredentials.client_id = credentials.client_id
 	newCredentials.token = access_token
 	
@@ -295,6 +303,8 @@ func refresh_token():
 	
 	var newCredentials = TwitchCredentials.new()
 	newCredentials.user_id = tmi.credentials.user_id
+	newCredentials.user_login = tmi.credentials.user_login
+	newCredentials.channel = tmi.credentials.channel
 	newCredentials.broadcaster_user_id = tmi.credentials.broadcaster_user_id
 	newCredentials.client_id = tmi.credentials.client_id
 	newCredentials.client_secret = tmi.credentials.client_secret

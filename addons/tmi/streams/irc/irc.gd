@@ -41,8 +41,12 @@ func connect_to_server():
 	
 func close_stream():
 	if socket:
+		print("[tmi/irc] closing stream")
 		socket.close()
-		socket = null	
+		socket = null
+	
+	if connection_state != ConnectionState.FAILED:
+		connection_state = ConnectionState.NOT_STARTED
 	
 func _process(_delta):
 	if socket == null:
@@ -86,6 +90,9 @@ func _setup_connection():
 	var kill_timer = get_tree().create_timer(10.0)
 	kill_timer.timeout.connect(
 		func ():
+			if socket == null:
+				return
+
 			if connection_state != ConnectionState.STARTED:
 				push_error("could not connect to IRC within time limit")
 				connection_state = ConnectionState.FAILED
@@ -116,7 +123,7 @@ func _login_with_credentials(credentials: TwitchCredentials):
 		return
 
 	socket.send_text("PASS %s" % credentials.get_password.call())
-	socket.send_text("NICK %s" % credentials.user_id)
+	socket.send_text("NICK %s" % credentials.user_login)
 	
 	var authed = await authenticated
 	if not authed:
@@ -132,7 +139,7 @@ func _join_channel():
 		return
 
 	# join channels to listen to
-	socket.send_text("JOIN #%s" % tmi.credentials.broadcast_user_id)
+	socket.send_text("JOIN #%s" % tmi.credentials.channel)
 	
 	# begin a ping-pong with the server to keep the bot alive
 	var ping_interval = Timer.new()

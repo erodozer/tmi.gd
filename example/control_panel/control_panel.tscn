@@ -72,7 +72,7 @@ editable = false
 [node name="Label3" type="Label" parent="GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Channels"
+text = "Channel"
 
 [node name="Channel" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true
@@ -82,7 +82,7 @@ size_flags_horizontal = 3
 [node name="Label7" type="Label" parent="GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Channel Id"
+text = "Broadcaster User Id"
 
 [node name="BroadcastUserId" type="LineEdit" parent="GridContainer"]
 unique_name_in_owner = true

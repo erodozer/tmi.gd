@@ -10,7 +10,7 @@ func _ready():
 			f.close()
 			
 			%UserId.text = credentials.user_id
-			%UserName.text = credentials.profile.get("display_name", "")
+			%UserName.text = credentials.user_login
 			%Token.text = credentials.token
 			%RefreshToken.text = credentials.refresh_token
 			%ClientId.text = credentials.client_id
@@ -53,8 +53,7 @@ func _ready():
 	
 	var credentials = TwitchCredentials.load_from_file("user://tmi.json")
 	if credentials != null:
-		tmi.set_credentials(credentials)
-
+		tmi.login(credentials)
 
 func _on_twitch_connection_status_changed(status):
 	match status:
@@ -66,18 +65,18 @@ func _on_twitch_connection_status_changed(status):
 			%ConnectionStatus.text = "Not Connected"
 
 func _on_login_button_pressed():
-	var credentials = TwitchCredentials.new()
-	credentials.client_id = %ClientId.text
-	credentials.client_secret = %ClientSecret.text
+	var credentials: TwitchCredentials
+	if not %ClientId.text:
+		credentials = TwitchCredentials.get_fallback_credentials()
+	else:
+		credentials = TwitchCredentials.new()
+		credentials.client_id = %ClientId.text
+		credentials.client_secret = %ClientSecret.text
 	credentials.user_id = %UserId.text
+	credentials.user_login = %UserName.text
 	credentials.channel = %Channel.text
 	
-	if credentials.client_id.is_empty():
-		credentials = TwitchCredentials.get_fallback_credentials()
-		tmi.set_credentials(credentials)
-	else:	
-		await tmi.login(credentials)
-
+	await tmi.login(credentials)
 
 func _on_client_id_text_changed(new_text):
 	%UserId.editable = new_text == ""

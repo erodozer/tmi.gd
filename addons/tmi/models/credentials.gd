@@ -1,6 +1,7 @@
 class_name TwitchCredentials
 extends Resource
 
+@export var user_login: String
 @export var user_id: String
 @export var channel: String
 @export var broadcaster_user_id: String
@@ -17,6 +18,7 @@ var get_password = func():
 	
 func to_json() -> String:
 	return JSON.stringify({
+		"user_login": user_login,
 		"user_id": user_id,
 		"broadcaster_user_id": broadcaster_user_id,
 		"channel": channel,
@@ -24,7 +26,7 @@ func to_json() -> String:
 		"client_secret": client_secret,
 		"access_token": token,
 		"refresh_token": refresh_token,
-		"user_name": profile.get("display_name", ""),
+		"user_name": profile.get("display_name", user_login),
 		"profile_image": profile.get("image", ""),
 	}, "  ")
 
@@ -33,7 +35,7 @@ func to_json() -> String:
 static func get_fallback_credentials() -> TwitchCredentials:
 	
 	var stub = TwitchCredentials.new()
-	stub.user_id = "%s%d" % ["justinfan", randi_range(1000, 80000)]
+	stub.user_login = "%s%d" % ["justinfan", randi_range(1000, 80000)]
 	stub.get_password = func():
 		return "SCHMOOPIIE"
 		
@@ -41,15 +43,32 @@ static func get_fallback_credentials() -> TwitchCredentials:
 
 static func load_from_project_settings() -> TwitchCredentials:
 	var credentials = TwitchCredentials.new()
+
+	var channel = ProjectSettings.get_setting_with_override("application/tmi/channel")
+	if channel:
+		credentials.channel = channel
+
 	credentials.client_id = ProjectSettings.get_setting_with_override("application/tmi/client_id")
-	credentials.client_secret = ProjectSettings.get_setting_with_override("application/tmi/client_secret")
-	credentials.token = ProjectSettings.get_setting_with_override("application/tmi/token")
-	credentials.refresh_token = ProjectSettings.get_setting_with_override("application/tmi/refresh_token")
+
+	var secret = ProjectSettings.get_setting_with_override("application/tmi/client_secret")
+	if secret:
+		credentials.client_secret = secret
+	
+	var access_token = ProjectSettings.get_setting_with_override("application/tmi/access_token")
+	if access_token:
+		credentials.token = access_token
+
+		var refresh_token = ProjectSettings.get_setting_with_override("application/tmi/refresh_token")
+		if refresh_token:
+			credentials.refresh_token = refresh_token
 
 	return credentials
 
 static func load_from_env() -> TwitchCredentials:
 	var credentials = TwitchCredentials.new()
+
+	credentials.user_login = OS.get_environment("TWITCH_LOGIN")
+	credentials.channel = OS.get_environment("TWITCH_CHANNEL")
 	credentials.client_id = OS.get_environment("TWITCH_CLIENT_ID")
 	credentials.client_secret = OS.get_environment("TWITCH_CLIENT_SECRET")
 	credentials.token = OS.get_environment("TWITCH_TOKEN")
@@ -65,6 +84,7 @@ static func load_from_file(jsonFilePath: String) -> TwitchCredentials:
 	var body = JSON.parse_string(contents)
 	
 	var credentials = TwitchCredentials.new()
+	credentials.user_login = body.get("user_login", "")
 	credentials.user_id = body.get("user_id", "")
 	credentials.channel = body.get("channel", "")
 	credentials.broadcaster_user_id = body.get("broadcaster_user_id", "")
@@ -73,7 +93,7 @@ static func load_from_file(jsonFilePath: String) -> TwitchCredentials:
 	credentials.token = body.get("access_token", "")
 	credentials.refresh_token = body.get("refresh_token", "")
 	credentials.profile = {
-		"display_name": body.get("user_name", ""),
+		"display_name": body.get("user_name", credentials.user_login),
 		"image": body.get("profile_image", ""),
 	}
 	return credentials
