@@ -6,7 +6,7 @@ const twitch_utils = preload("../utils.gd")
 @onready var tmi: Tmi = get_parent()
 
 func _on_twitch_command(type: String, evt):
-	if type != "roomstate":
+	if type != Tmi.EventType.ROOM_STATE:
 		return
 		
 	tmi._load_stack["7tv"] = true
@@ -16,15 +16,17 @@ func _on_twitch_command(type: String, evt):
 func preload_emotes(channel_id:String):
 	var body = await twitch_utils.fetch(self,
 		"https://7tv.io/v3/users/twitch/%s" % channel_id,
+		HTTPClient.METHOD_GET,
+		{},{},
 		true
 	)
-	if body == null:
-		push_warning("Unable to fetch 7tv emotes for channel %s" % channel_id)
+	if body.code != 200:
+		push_warning("unable to fetch emotes for channel %s" % channel_id)
 		return
 	
 	var emotes = []
-	if body.emote_set and body.emote_set.emotes:
-		emotes = body.emote_set.emotes
+	if body.data.emote_set and body.data.emote_set.emotes:
+		emotes = body.data.emote_set.emotes
 		
 	var acc = []
 	
@@ -45,11 +47,20 @@ func preload_emotes(channel_id:String):
 		url = "https:%s/%s" % [url, image.name]
 		
 		if image:
-			var tex = await twitch_utils.fetch_animated(
-				self,
-				"user://emotes/7tv_%s.webp" % id,
-				url,
-			)
+			var tex
+			if image.frame_count > 1:
+				tex = await twitch_utils.fetch_animated(
+					self,
+					"user://emotes/7tv_%s.webp" % id,
+					url,
+				)
+			else:
+				tex = await twitch_utils.fetch_static(
+					self,
+					"user://emotes/7tv_%s.webp" % id,
+					url,
+				)
+			
 			if tex != null:
 				acc.append({
 					"code": name,
@@ -59,6 +70,8 @@ func preload_emotes(channel_id:String):
 						"height": image.height
 					}
 				})
+			else:
+				push_error("failed to load image %s" % url)
 	
 	var tmi = get_parent() as Tmi
 	tmi._emotes.append_array(acc)

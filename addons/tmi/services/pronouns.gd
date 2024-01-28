@@ -9,29 +9,29 @@ var _pronouns = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	if tmi.include_pronouns:
-		_pronouns = await utils.fetch(self, "https://pronouns.alejo.io/api/pronouns", true)
+	_pronouns = (await utils.fetch(self, "https://pronouns.alejo.io/api/pronouns", HTTPClient.METHOD_GET, {}, {}, true)).data
 
-func fetch_pronouns_for_user(profile: TwitchUserState):
-	if not tmi.include_pronouns:
+func enrich(obj: TmiAsyncState):
+	if not (obj is TmiUserState):
 		return
 		
-	profile.loading["pronouns"] = true
-	var result = await utils.fetch(self, "https://pronouns.alejo.io/api/users/%s" % profile.display_name, true)
+	var profile = obj as TmiUserState
+	if "pronouns" in profile.extra:
+		return
 	
-	if result == null:
-		result = []
+	var result = await utils.fetch(self, "https://pronouns.alejo.io/api/users/%s" % profile.display_name, HTTPClient.METHOD_GET, {}, {}, true)
 	
-	if len(result) > 0:
-		var user_pronoun = result.front()
-		if user_pronoun:
-			user_pronoun = user_pronoun.pronoun_id
-			
-		if user_pronoun:
-			var pronoun = _pronouns.filter(func (p): return p.name == user_pronoun).front()
-			profile.extra["pronouns"] = pronoun.display
+	if result.code != 200:
+		return
+	
+	if result.data.is_empty():
+		return
+	
+	var user_pronoun = result.data.front()
+	if user_pronoun:
+		user_pronoun = user_pronoun.pronoun_id
 		
-	profile.loading.erase("pronouns")
+	if user_pronoun:
+		var pronoun = _pronouns.filter(func (p): return p.name == user_pronoun).front()
+		profile.extra["pronouns"] = pronoun.display
 
-func _on_twitch_api_user_cached(profile):
-	await fetch_pronouns_for_user(profile) # uses login id instead of user id

@@ -1,6 +1,8 @@
 class_name TwitchEventSub
 extends TmiEventStream
 
+const utils = preload("../../utils.gd")
+
 const ENDPOINTS = {
 	"LIVE": {
 		"WEBSOCKET": "wss://eventsub.wss.twitch.tv/ws",
@@ -15,9 +17,34 @@ const ENDPOINTS = {
 const SUBSCRIPTION_TYPES = [
 	# Chat
 	{
-		"channel.chat.notification": "1",
-		"channel.chat.message_delete": "1",
-		"channel.chat.clear_user_messages": "1",
+		"channel.chat.message": {
+			"version": "1",
+			"condition": {
+				"broadcaster_user_id": "broadcaster_user_id",
+				"user_id": "user_id"
+			}
+		},
+		"channel.chat.notification": {
+			"version": "1",
+			"condition": {
+				"broadcaster_user_id": "broadcaster_user_id",
+				"user_id": "user_id"
+			}
+		},
+		"channel.chat.message_delete": {
+			"version": "1",
+			"condition": {
+				"broadcaster_user_id": "broadcaster_user_id",
+				"user_id": "user_id"
+			}
+		},
+		"channel.chat.clear_user_messages": {
+			"version": "1",
+			"condition": {
+				"broadcaster_user_id": "broadcaster_user_id",
+				"user_id": "user_id"
+			}
+		},
 	},
 	# Info
 	{
@@ -86,14 +113,13 @@ const SUBSCRIPTION_TYPES = [
 	}
 ]
 
-@export_flags("Info", "Follow/Subscriptions", "Shoutout", "Raid", "Hype", "Redeems", "Polls/Predictions", "Goal") var listen_to = 0
-@export_enum("LIVE", "LOCAL") var mode = "LIVE"
-
 var socket: WebSocketPeer
 var reconnect_socket: WebSocketPeer
 
 var session_id: String
 var keep_alive_timer: Timer
+
+@export_enum("LIVE", "LOCAL") var mode = "LIVE"
 
 signal message_received(command)
 signal socket_connected
@@ -102,6 +128,7 @@ signal request
 signal channel_set
 
 @onready var commands:  = [
+	await preload("./commands/chat.gd").new(),
 	await preload("./commands/redeem.gd").new(),
 	await preload("./commands/follow.gd").new(),
 	await preload("./commands/raid.gd").new(),
@@ -114,31 +141,23 @@ func _init():
 	
 func _ready():
 	keep_alive_timer = Timer.new()
+	keep_alive_timer.name = "KeepAlive"
 	keep_alive_timer.timeout.connect(
 		func():
 			# attempt reconnect process for new session
 			# if this one has reached its expiration
-			connect_to_server(true)
+			connect_to_server()
 	)
 	add_child(keep_alive_timer)
 	
-func connect_to_server(soft = false):
+func connect_to_server():
 	# do not start up the socket on soft connects
-	if soft and socket == null:
+	if socket != null:
 		return
 	
 	# do not attempt to connect if we're in the middle
 	# of reconnecting already
 	if reconnect_socket:
-		return
-		
-	if socket:
-		socket.close()
-		socket = null
-	
-	if tmi.credentials == null:
-		return
-	if tmi.credentials.token == "":
 		return
 	
 	connection_state = ConnectionState.NOT_STARTED
@@ -148,6 +167,12 @@ func connect_to_server(soft = false):
 	# create websocket connection to twitch irc endpoitn
 	socket.connect_to_url(ENDPOINTS[mode].WEBSOCKET)
 	set_process(true)
+	
+func close_stream():
+	if socket:
+		socket.close()
+		socket = null
+		set_process(false)
 	
 func _process(_delta):
 	for socket in [self.socket, reconnect_socket]:
@@ -192,17 +217,16 @@ func request_permission(permission, details):
 			for i in details.condition:
 				condition[i] = tmi.credentials.get(details.condition[i])
 	
-	var req = HTTPRequest.new()
-	add_child(req)
-	req.request(
+	var result = await utils.fetch(
+		self,
 		ENDPOINTS[mode].SUBSCRIPTION,
-		[
-			"Authorization: Bearer %s" % tmi.credentials.token,
-			"Client-Id: %s" % tmi.credentials.client_id,
-			"Content-Type: application/json",
-		],
 		HTTPClient.METHOD_POST,
-		JSON.stringify({
+		{
+			"Authorization": "Bearer %s" % tmi.credentials.token,
+			"Client-Id": tmi.credentials.client_id,
+			"Content-Type": "application/json",
+		},
+		{
 			"type": permission,
 			"version": version,
 			"condition": condition,
@@ -210,19 +234,14 @@ func request_permission(permission, details):
 				"method": "websocket",
 				"session_id": session_id
 			}
-		})
+		},
+		true
 	)
 	
-	var result = await req.request_completed
-	
-	if result[1] != 202:
-		push_error("Request for permission failed: %s" % permission)
-		print_debug(JSON.parse_string(result[3].get_string_from_utf8()))
-		
-	# return success if response is ok
-	return result[1] == 202
+	return result.code < 300 or result.code == 409
 	
 func _setup_connection():
+	print("[tmi/sub]: connection established")
 	connection_state = ConnectionState.STARTING
 	
 	# wait for welcome message
@@ -230,17 +249,13 @@ func _setup_connection():
 	
 	# request all permissions necessary
 	for i in range(len(SUBSCRIPTION_TYPES)):
-		if 1 << i & listen_to:
-			for subscription in SUBSCRIPTION_TYPES[i]:
-				var version = SUBSCRIPTION_TYPES[i][subscription]
-				var success = await request_permission(subscription, version)
-				if not success:
-					push_error("Authentication failed")
-					connection_state = ConnectionState.FAILED
-					socket.close()
-					return
-	
-	print("twitch-gd: welcome to subway")
+		for subscription in SUBSCRIPTION_TYPES[i]:
+			var version = SUBSCRIPTION_TYPES[i][subscription]
+			var success = await request_permission(subscription, version)
+			if not success:
+				push_error("Authentication failed for %s, disabling message type" % subscription)
+
+	print("[tmi/sub]: we're in 😎")
 	
 	connection_state = ConnectionState.STARTED
 
@@ -268,6 +283,12 @@ func handle_message(command: Dictionary):
 				reconnect_socket = null
 			else:
 				socket_connected.emit()
+			tmi.command.emit(
+				Tmi.EventType.ROOM_STATE,
+				{
+					"channel_id": tmi.credentials.broadcaster_user_id,
+				},
+			)
 		"session_reconnect":
 			reconnect_socket = WebSocketPeer.new()
 			reconnect_socket.connect_to_url(command.metadata.payload.session.reconenct_url)
@@ -281,6 +302,7 @@ func handle_message(command: Dictionary):
 				command.metadata.subscription_type,
 				command.metadata.subscription_version
 			]
+			notification.timestamp = Time.get_unix_time_from_datetime_string(command.metadata.message_timestamp)
 			notification.event = command.payload.event
 			
 			var tmi = get_parent()

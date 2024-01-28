@@ -1,26 +1,64 @@
-[gd_scene load_steps=4 format=3 uid="uid://d3r7gwv5bhvmk"]
+[gd_scene load_steps=7 format=3 uid="uid://d3r7gwv5bhvmk"]
 
 [ext_resource type="PackedScene" uid="uid://cmfr6463oc3to" path="res://addons/tmi/tmi.tscn" id="1_0nacd"]
 [ext_resource type="PackedScene" uid="uid://2hx3mbwdlv1w" path="res://example/control_panel/control_panel.tscn" id="1_hc6cj"]
+[ext_resource type="Script" path="res://example/example.gd" id="1_ix281"]
 [ext_resource type="PackedScene" uid="uid://ry571ddp7oys" path="res://example/chat/chat.tscn" id="3_y7inn"]
 
-[node name="Node" type="Node"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_41wmr"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.121569, 0.156863, 0.172549, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.8, 0.8, 0.8, 0)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[node name="Twitch" parent="." instance=ExtResource("1_0nacd")]
-channels = Array[String](["amour"])
+[sub_resource type="Theme" id="Theme_w5ofe"]
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_41wmr")
+
+[node name="Example" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_w5ofe")
+script = ExtResource("1_ix281")
+
+[node name="Tmi" parent="." instance=ExtResource("1_0nacd")]
+unique_name_in_owner = true
 
 [node name="Example" type="HBoxContainer" parent="."]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ControlPanel" parent="Example" instance=ExtResource("1_hc6cj")]
+[node name="PanelContainer" type="PanelContainer" parent="Example"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ControlPanel" parent="Example/PanelContainer" node_paths=PackedStringArray("tmi") instance=ExtResource("1_hc6cj")]
+layout_mode = 2
+tmi = NodePath("../../../Tmi")
+
+[node name="PanelContainer2" type="PanelContainer" parent="Example"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Chat" parent="Example/PanelContainer2" instance=ExtResource("3_y7inn")]
 layout_mode = 2
 
-[node name="Chat" parent="Example" instance=ExtResource("3_y7inn")]
-visible = false
-layout_mode = 2
-
-[connection signal="command" from="Twitch" to="Example/Chat" method="_on_twitch_command"]
+[connection signal="command" from="Tmi" to="Example/PanelContainer2/Chat" method="_on_twitch_command"]
+[connection signal="connection_status_changed" from="Tmi" to="Example/PanelContainer/ControlPanel" method="_on_twitch_connection_status_changed"]

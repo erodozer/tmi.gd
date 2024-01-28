@@ -3,14 +3,139 @@
 [ext_resource type="Script" path="res://example/control_panel/control_panel.gd" id="1_6mp46"]
 
 [node name="ControlPanel" type="VBoxContainer"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+offset_right = 1152.0
+offset_bottom = 287.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 script = ExtResource("1_6mp46")
 
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 2
+columns = 2
+
+[node name="Label4" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Connection Status
+"
+
+[node name="ConnectionStatus" type="Label" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Not Connected"
+horizontal_alignment = 2
+
+[node name="Label" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Client ID"
+
+[node name="ClientId" type="LineEdit" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label2" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Client Secret"
+
+[node name="ClientSecret" type="LineEdit" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+secret = true
+
+[node name="Label6" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Username"
+
+[node name="UserName" type="LineEdit" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label5" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "User Id"
+
+[node name="UserId" type="LineEdit" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="Label3" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Channels"
+
+[node name="Channel" type="LineEdit" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label7" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Channel Id"
+
+[node name="BroadcastUserId" type="LineEdit" parent="GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="Label4" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Access Token"
+
+[node name="Token" type="LineEdit" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label5" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Refresh Token"
+
+[node name="RefreshToken" type="LineEdit" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LoginButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Login"
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
 [node name="Label" type="Label" parent="."]
 layout_mode = 2
-text = "Connection Status"
+text = "Rewards"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Rewards" type="GridContainer" parent="ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 16
+columns = 2
+
+[connection signal="text_changed" from="GridContainer/ClientId" to="." method="_on_client_id_text_changed"]
+[connection signal="text_submitted" from="GridContainer/Channel" to="." method="_on_channel_text_submitted"]
+[connection signal="text_submitted" from="GridContainer/BroadcastUserId" to="." method="_on_channel_text_submitted"]
+[connection signal="pressed" from="LoginButton" to="." method="_on_login_button_pressed"]

@@ -11,6 +11,6 @@ func handle_message(command: TwitchIrcCommand, tmi: Tmi):
 	evt.channel_id = command.metadata['room-id']
 
 	tmi.command.emit(
-		"roomstate",
+		Tmi.EventType.ROOM_STATE,
 		evt
 	)

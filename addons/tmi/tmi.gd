@@ -10,15 +10,9 @@ class EventType:
 	const RAID = "raid"
 	const USER_CHANGED = "userstate"
 	const USER_DELETED = "user-deleted"
+	const ROOM_STATE = "roomstate"
 
 @export var credentials: TwitchCredentials
-@export var channels: Array[String]
-
-@export_category("Features")
-@export var enable_bttv_emotes = false
-@export var enable_7tv_emotes = false
-@export var include_profile_images = false
-@export var include_pronouns = false
 
 var _load_stack = {}
 var _emotes = []
@@ -36,7 +30,12 @@ signal connection_status_changed(status: ConnectionStatus)
 var irc: TmiEventStream
 var eventsub: TmiEventStream
 
-func _set_credentials(c: TwitchCredentials):
+## Updates the credentials of the Tmi session and attempts
+## to reopen sockets
+## 
+## Always use this function to replace credentials instead
+## of directly setting the property
+func set_credentials(c: TwitchCredentials):
 	if c == null:
 		return
 		
@@ -44,14 +43,18 @@ func _set_credentials(c: TwitchCredentials):
 	
 	credentials_updated.emit(credentials)
 	
-	start(true)
+	start()
 
 func _ready():
 	irc = preload("./streams/irc/irc.gd").new()
+	irc.name = "IRC"
 	eventsub = preload("./streams/eventsub/eventsub.gd").new()
+	eventsub.name = "EventSub"
 	irc.tmi = self
 	eventsub.tmi = self
-
+	add_child(irc)
+	add_child(eventsub)
+	
 	var prev_connection_state = ConnectionStatus.NOT_CONNECTED
 	var connection_poller = Timer.new()
 	connection_poller.timeout.connect(
@@ -64,21 +67,21 @@ func _ready():
 	add_child(connection_poller)
 	connection_poller.start(1.0)
 	
-	add_child(irc)
-	add_child(eventsub)
-	
 	if credentials == null:
 		credentials = TwitchCredentials.get_fallback_credentials()
 		
-func start(soft = false):
-	if channels.is_empty():
-		print("[tmi]: must have at least one channel to connect to")
-		return
+func start():
+	irc.close_stream()
+	eventsub.close_stream()
 		
 	if credentials.token:
-		eventsub.connect_to_server(soft)
-	if credentials.token == null:
-		irc.connect_to_server(soft)
+		print("[tmi]: attempting to connect to EventSub")
+		eventsub.connect_to_server()
+	
+	# IRC is only useful for unauthenticated sessions
+	if not credentials.token:
+		print("[tmi]: attempting to connect to IRC")
+		irc.connect_to_server()
 
 func connection_state() -> ConnectionStatus:
 	if irc.connection_state == TmiEventStream.ConnectionState.STARTED:
@@ -92,5 +95,13 @@ func enrich(obj: TmiAsyncState):
 		if i.has_method("enrich"):
 			obj.wait_for(i.name, i.enrich.bind(obj))
 
-	if not obj.is_loaded:
+	if obj.is_loading:
 		await obj.loaded
+
+func login(credentials: TwitchCredentials):
+	var oauth = get_node("OAuth")
+	if oauth == null:
+		push_error("Can not login to Twitch, Tmi is missing OAuth service child")
+		return
+		
+	await oauth.login(credentials)

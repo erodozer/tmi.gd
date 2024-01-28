@@ -31,25 +31,18 @@ func _ready():
 	for c in commands:
 		message_received.connect(c.handle_message.bind(tmi))
 	
-func connect_to_server(soft = false):
-	# do not start up the socket on soft connects
-	if soft and socket == null:
-		return
-	
-	if socket:
-		socket.close()
-		socket = null
+func connect_to_server():
+	close_stream()
 
-	# IRC is only useful for unauthenticated sessions
-	if tmi.credentials == null:
-		return
-	if tmi.credentials.token != null:
-		return
-	
 	connection_state = ConnectionState.NOT_STARTED
 	socket = WebSocketPeer.new()
 	# create websocket connection to twitch irc endpoitn
 	socket.connect_to_url(ENDPOINT)
+	
+func close_stream():
+	if socket:
+		socket.close()
+		socket = null	
 	
 func _process(_delta):
 	if socket == null:
@@ -78,19 +71,8 @@ func _process(_delta):
 		socket = null
 	
 func _setup_connection():
+	print("[tmi/irc]: connection established")
 	connection_state = ConnectionState.STARTING
-	
-	if tmi.credentials == null:
-		push_error("no config/credentials set to connect with")
-		connection_state = ConnectionState.FAILED
-		socket.close()
-		return
-	
-	if tmi.credentials.channel == "":
-		push_error("no channel to connect to")
-		connection_state = ConnectionState.FAILED
-		socket.close()
-		return
 	
 	# this requests for this client to receive additional twitch IRC specific commands
 	# in its command stream.
@@ -134,7 +116,7 @@ func _login_with_credentials(credentials: TwitchCredentials):
 		return
 
 	socket.send_text("PASS %s" % credentials.get_password.call())
-	socket.send_text("NICK %s" % credentials.bot_id)
+	socket.send_text("NICK %s" % credentials.user_id)
 	
 	var authed = await authenticated
 	if not authed:
@@ -150,8 +132,7 @@ func _join_channel():
 		return
 
 	# join channels to listen to
-	for ch in tmi.channels:
-		socket.send_text("JOIN #%s" % ch)
+	socket.send_text("JOIN #%s" % tmi.credentials.broadcast_user_id)
 	
 	# begin a ping-pong with the server to keep the bot alive
 	var ping_interval = Timer.new()
@@ -159,7 +140,7 @@ func _join_channel():
 	ping_interval.timeout.connect(self._send_ping)
 	add_child(ping_interval)
 	ping_interval.start()
-	print("[tmi]: we're in hampwnDance")
+	print("[tmi/irc]: we're in hampwnDance")
 	
 	connection_state = ConnectionState.STARTED
 
@@ -175,6 +156,8 @@ func _handle_packet(packet: PackedByteArray):
 	
 ## Keeps the connection alive by sending PING requests to the server
 func _send_ping():
+	if socket == null:
+		return
 	if socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
 		return
 		

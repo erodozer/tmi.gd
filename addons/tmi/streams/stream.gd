@@ -15,5 +15,8 @@ var tmi
 func _init(tmi):
 	self.tmi = tmi
 
-func connect_to_server(soft = false):
+func connect_to_server():
+	pass
+
+func close_stream():
 	pass

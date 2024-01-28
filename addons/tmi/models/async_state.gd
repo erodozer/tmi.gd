@@ -19,7 +19,7 @@ func push_loading(name):
 func pop_loading(name):
 	_loading.erase(name)
 
-	if not _is_loading:
+	if not _is_loading():
 		loaded.emit()
 
 func wait_for(name, fn: Callable):

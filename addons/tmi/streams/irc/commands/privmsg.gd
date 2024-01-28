@@ -70,7 +70,7 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	var parse_emote = func (emote):
 		var data = emote.split(":")
 		var emote_id = data[0]
-		var tex = await tmi.twitch_api.fetch_twitch_emote(emote)
+		var tex = await tmi.get_node("TwitchAPI").fetch_twitch_emote(emote_id)
 		
 		if not tex:
 			return

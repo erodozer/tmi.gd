@@ -33,15 +33,9 @@ add_child(tmi)
 tmi.start()
 ```
 
-## Reusing Connections
+## Multiple Connections
 
-Twitch's streams are designed to support listening on multiple topics and channels.  If you are in a situation where you need this functionality, it is recommended to reuse a connection instead of spawning one for each channel.
-
-To do this, your token for EventSub will require comprehensive permissions for the features you will need across all channels you are listening to.  It is up to you to filter out logically what events you might not want to hear for a certain channel.  Filtering events from a multiplexed session can be done using the channel name included in the payload of tmi commands when an event is scoped by the channel.
-
-```
-
-```
+If you wish to listen to events from multiple channels, you can spawn multiple instances of Tmi in your SceneTree.  Each instance will require its own configuration and TwitchCredentials for each channel it is allowed to listen to.
 
 ## Custom Services
 

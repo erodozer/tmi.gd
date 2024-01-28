@@ -11,10 +11,11 @@ config_version=5
 [application]
 
 config/name="tmi.gd"
+run/main_scene="res://example/example.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
 tmi/client_id=""
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godottpd/plugin.cfg", "res://addons/magick_dumps/plugin.cfg")
+enabled=PackedStringArray("res://addons/magick_dumps/plugin.cfg")
