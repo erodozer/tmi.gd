@@ -57,7 +57,7 @@ func handle_chat_message(message, tmi):
 	profile.id =  event.chatter_user_id
 	profile.display_name = event.chatter_user_name
 	profile.color = Color.from_string(event.color, "#ffffff")
-	await tmi.enrich(profile)
+	profile = await tmi.enrich(profile)
 		
 	var text = await _render_message(event.message.fragments, tmi)
 	tmi.command.emit(

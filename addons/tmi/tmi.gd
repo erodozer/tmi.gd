@@ -16,6 +16,7 @@ class EventType:
 
 var _load_stack = {}
 var _emotes = []
+var _enrichable = []
 
 enum ConnectionStatus {
 	NOT_CONNECTED,
@@ -70,6 +71,11 @@ func _ready():
 	if credentials == null:
 		credentials = TwitchCredentials.get_fallback_credentials()
 		
+	_enrichable = []
+	for i in get_children():
+		if i.has_method("enrich"):
+			_enrichable.append(i)
+		
 func start():
 	irc.close_stream()
 	eventsub.close_stream()
@@ -91,12 +97,10 @@ func connection_state() -> ConnectionStatus:
 	return ConnectionStatus.NOT_CONNECTED
 
 func enrich(obj: TmiAsyncState):
-	for i in get_children():
-		if i.has_method("enrich"):
-			obj.wait_for(i.name, i.enrich.bind(obj))
-
-	if obj.is_loading:
-		await obj.loaded
+	for i in _enrichable:
+		await obj.wait_for(i.name, i.enrich.bind(obj))
+	
+	return obj
 
 func login(credentials: TwitchCredentials):
 	if not credentials.client_id:

@@ -30,7 +30,7 @@ static func load_animated(path: String) -> AnimatedTexture:
 		return null
 	
 	# load frames into AnimatedTexture
-	return ResourceLoader.load(path + ".res") as AnimatedTexture
+	return load(path + ".res") as AnimatedTexture
 	
 static func save_animated(path: String, buffer: PackedByteArray = []) -> Texture2D:
 	if ResourceLoader.exists("res://addons/magick_dumps/magick.gd"):
@@ -41,15 +41,19 @@ static func save_animated(path: String, buffer: PackedByteArray = []) -> Texture
 	return null
 	
 static func load_static(filepath: String) -> Texture2D:
+	var tex: Texture2D
+	if not FileAccess.file_exists(filepath):
+		return null
+	
 	if ResourceLoader.has_cached(filepath):
-		return load(filepath)
-		
-	if FileAccess.file_exists(filepath):
+		tex = load(filepath)
+	
+	if tex == null:
 		var image = Image.new()
 		var error = image.load(filepath)
 		if error != OK:
 			return null
-		var tex = ImageTexture.create_from_image(image)
+		tex = ImageTexture.create_from_image(image)
 		tex.take_over_path(filepath)
 		return tex
 	
@@ -135,7 +139,7 @@ static func fetch(n: Node, url: String, method: HTTPClient.Method = HTTPClient.M
 		body = JSON.parse_string(body)
 	
 	if status >= 400:
-		push_error("[tmi/fetch]: request failed, status: %d, body: %s" % [status, JSON.stringify(body)])
+		push_error("[tmi/fetch]: request failed, status: %d, body: %s" % [status, body])
 	
 	return {
 		"code": status,

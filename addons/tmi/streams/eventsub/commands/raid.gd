@@ -7,7 +7,7 @@ func handle_message(message, tmi: Tmi):
 	tmi.command.emit(
 		Tmi.EventType.RAID,
 		{
-			"channel": message.event.broadcaster_user_login,
+			"channel": message.event.to_broadcaster_user_login,
 			"user": {
 				"id": message.event.from_broadcaster_user_id,
 				"display_name": message.event.from_broadcaster_user_name,
