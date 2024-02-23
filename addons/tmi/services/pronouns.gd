@@ -28,16 +28,9 @@ func enrich(obj: TmiAsyncState):
 		return
 	
 	var user_pronoun = result.data
-	var primary_pronoun_id
-	var secondary_pronoun_id
-	if user_pronoun:
-		primary_pronoun_id = user_pronoun.pronoun_id
-		secondary_pronoun_id = user_pronoun.alt_pronoun_id
-		var pronoun = _pronouns[primary_pronoun_id]
-		profile.extra["pronouns"] = pronoun.subject + "/"
-		
-		if secondary_pronoun_id != null:
-			var secondary_pronoun = _pronouns[secondary_pronoun_id]
-			profile.extra["pronouns"] += secondary_pronoun.subject
-		else:
-			profile.extra["pronouns"] += pronoun.object
+	var primary = _pronouns.get(user_pronoun.pronoun_id)
+	var secondary = _pronouns.get(user_pronoun.alt_pronoun_id, primary)
+	profile.extra["pronouns"] = "%s/%s" % [
+		primary.subject,
+		secondary.subject if secondary != primary else secondary.object
+	]
