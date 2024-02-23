@@ -9,7 +9,7 @@ var _pronouns = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	_pronouns = (await utils.fetch(self, "https://pronouns.alejo.io/api/pronouns", HTTPClient.METHOD_GET, {}, {}, true)).data
+	_pronouns = (await utils.fetch(self, "https://api.pronouns.alejo.io/v1/pronouns", HTTPClient.METHOD_GET, {}, {}, true)).data
 
 func enrich(obj: TmiAsyncState):
 	if not (obj is TmiUserState):
@@ -19,7 +19,7 @@ func enrich(obj: TmiAsyncState):
 	if "pronouns" in profile.extra:
 		return
 	
-	var result = await utils.fetch(self, "https://pronouns.alejo.io/api/users/%s" % profile.display_name, HTTPClient.METHOD_GET, {}, {}, true)
+	var result = await utils.fetch(self, "https://api.pronouns.alejo.io/v1/users/%s" % profile.display_name, HTTPClient.METHOD_GET, {}, {}, true)
 	
 	if result.code != 200:
 		return
@@ -27,11 +27,17 @@ func enrich(obj: TmiAsyncState):
 	if result.data.is_empty():
 		return
 	
-	var user_pronoun = result.data.front()
+	var user_pronoun = result.data
+	var primary_pronoun_id
+	var secondary_pronoun_id
 	if user_pronoun:
-		user_pronoun = user_pronoun.pronoun_id
+		primary_pronoun_id = user_pronoun.pronoun_id
+		secondary_pronoun_id = user_pronoun.alt_pronoun_id
+		var pronoun = _pronouns[primary_pronoun_id]
+		profile.extra["pronouns"] = pronoun.subject + "/"
 		
-	if user_pronoun:
-		var pronoun = _pronouns.filter(func (p): return p.name == user_pronoun).front()
-		profile.extra["pronouns"] = pronoun.display
-
+		if secondary_pronoun_id != null:
+			var secondary_pronoun = _pronouns[secondary_pronoun_id]
+			profile.extra["pronouns"] += secondary_pronoun.subject
+		else:
+			profile.extra["pronouns"] += pronoun.object
