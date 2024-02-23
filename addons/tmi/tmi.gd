@@ -87,12 +87,14 @@ func start():
 			print("[tmi/sub]: token potentially expired, attempting refresh")
 			var oauth = get_node("OAuth") as TmiOAuthService
 			oauth.refresh_token()
+			# attempt a second time after refreshing
 			if credentials.token:
-				success = await eventsub.connect_to_server() # attempt a second time after refreshing
+				success = await eventsub.connect_to_server()
 		if success:
 			return
 	
-	# IRC is only useful for unauthenticated sessions
+	# IRC is only useful for unauthenticated sessions or
+	# listening to other channels when using a standard User Access Token
 	print("[tmi]: attempting to connect to IRC")
 	await irc.connect_to_server()
 

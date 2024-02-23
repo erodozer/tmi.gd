@@ -39,3 +39,4 @@ func _on_twitch_command(type, event):
 	if get_child_count() > HISTORY_LIMIT:
 		remove_child(get_child(0))
 	
+	call_deferred("ensure_control_visible", m)
