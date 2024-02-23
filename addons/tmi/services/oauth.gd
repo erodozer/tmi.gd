@@ -149,10 +149,14 @@ func _process(_delta):
 	var response = peer.get_utf8_string(peer.get_available_bytes())
 	if response == "":
 		return
-
+		
 	_process_response(response)
 
 func _process_response(response : String):
+	if response.contains("favicon"):
+		_send_response("404 NOT FOUND", "Not Found")
+		return
+	
 	# parse out the query string parameters
 	var start : int = response.strip_escapes().find("?")
 
@@ -171,7 +175,8 @@ func _process_response(response : String):
 		await _code_to_token(data["code"])
 	elif "id_token" in data:
 		await _idtoken_credentials(data["id_token"], data["access_token"])
-	
+		_send_response("200 OK", REDIRECT_PAGE)
+
 	_stop_server()
 
 func _send_response(status_code: String, body: String):

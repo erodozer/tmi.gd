@@ -144,21 +144,22 @@ func _ready():
 	keep_alive_timer.name = "KeepAlive"
 	keep_alive_timer.timeout.connect(
 		func():
-			# attempt reconnect process for new session
-			# if this one has reached its expiration
-			connect_to_server()
+			if connection_state == ConnectionState.NOT_STARTED:
+				# attempt reconnect process for new session
+				# if this one has reached its expiration
+				connect_to_server()
 	)
 	add_child(keep_alive_timer)
 	
 func connect_to_server():
 	# do not start up the socket on soft connects
 	if socket != null:
-		return
+		return false
 	
 	# do not attempt to connect if we're in the middle
 	# of reconnecting already
 	if reconnect_socket:
-		return
+		return false
 	
 	connection_state = ConnectionState.NOT_STARTED
 	
@@ -166,6 +167,15 @@ func connect_to_server():
 	
 	# create websocket connection to twitch irc endpoitn
 	socket.connect_to_url(ENDPOINTS[mode].WEBSOCKET)
+	
+	while true:
+		match connection_state:
+			ConnectionState.FAILED:
+				return false
+			ConnectionState.STARTED:
+				return true
+			_:
+				await get_tree().process_frame
 	
 func close_stream():
 	if socket:
@@ -243,7 +253,7 @@ func request_permission(permission, details):
 	return [result.code < 300 or result.code == 409, result.code]
 	
 func _setup_connection():
-	print("[tmi/sub]: connection established")
+	print("[tmi/sub]: connection established, requesting permissions")
 	connection_state = ConnectionState.STARTING
 	
 	# wait for welcome message
@@ -260,13 +270,18 @@ func _setup_connection():
 					push_error("Invalid token, consider refreshing or clearing credentials")
 					connection_state = ConnectionState.FAILED
 					close_stream()
-					return false
+					return
 
 	print("[tmi/sub]: we're in 😎")
 	
-	connection_state = ConnectionState.STARTED
+	tmi.command.emit(
+		Tmi.EventType.ROOM_STATE,
+		{
+			"channel_id": tmi.credentials.broadcaster_user_id,
+		},
+	)
 	
-	return true
+	connection_state = ConnectionState.STARTED
 
 func _handle_packet(packet: PackedByteArray):
 	# parse packet as list of json messages
@@ -292,12 +307,6 @@ func handle_message(command: Dictionary):
 				reconnect_socket = null
 			else:
 				socket_connected.emit()
-			tmi.command.emit(
-				Tmi.EventType.ROOM_STATE,
-				{
-					"channel_id": tmi.credentials.broadcaster_user_id,
-				},
-			)
 		"session_reconnect":
 			reconnect_socket = WebSocketPeer.new()
 			reconnect_socket.connect_to_url(command.metadata.payload.session.reconenct_url)
