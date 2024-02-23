@@ -9,9 +9,11 @@ func _on_twitch_command(type: String, evt):
 	if type != Tmi.EventType.ROOM_STATE:
 		return
 		
+	print("[tmi/bttv]: downloading 7tv emotes")
 	tmi._load_stack["7tv"] = true
 	await preload_emotes(evt.channel_id)
 	tmi._load_stack.erase("7tv")
+	print("[tmi/bttv]: preloading 7tv emotes completed")
 
 func preload_emotes(channel_id:String):
 	var body = await twitch_utils.fetch(self,

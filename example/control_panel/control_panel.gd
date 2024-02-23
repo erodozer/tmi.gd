@@ -81,7 +81,7 @@ func _on_login_button_pressed():
 func _on_client_id_text_changed(new_text):
 	%UserId.editable = new_text == ""
 	%UserName.editable = new_text == ""
-	%Channels.editable = %ClientSecret.text != "" or new_text == ""
+	%Channel.editable = %ClientSecret.text != "" or new_text == ""
 
 func _on_channel_text_submitted(new_text):
 	pass # Replace with function body.

@@ -55,9 +55,8 @@ static func load_static(filepath: String) -> Texture2D:
 			return null
 		tex = ImageTexture.create_from_image(image)
 		tex.take_over_path(filepath)
-		return tex
 	
-	return null
+	return tex
 	
 static func save_static(filepath: String, buffer: PackedByteArray) -> Texture2D:
 	var image = Image.new()
@@ -134,7 +133,7 @@ static func fetch(n: Node, url: String, method: HTTPClient.Method = HTTPClient.M
 	var status = result[1]
 	
 	var body = result[3] as PackedByteArray
-	if body and json:
+	if body != null and json:
 		body = body.get_string_from_utf8()
 		body = JSON.parse_string(body)
 	

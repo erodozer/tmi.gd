@@ -14,6 +14,7 @@ func _on_twitch_command(type: String, evt):
 	await preload_global_emotes()
 	await preload_emotes(evt.channel_id)
 	tmi._load_stack.erase("bttv")
+	print("[tmi/bttv]: preloading bttv emotes completed")
 	
 func fetch_emote_images(emotes):
 	if len(emotes) == 0:
@@ -25,7 +26,7 @@ func fetch_emote_images(emotes):
 		var name = e.code
 		var image_type = e.imageType
 		
-		var url = "https://cdn.betterttv.net/emote/%s/2x" % id
+		var url = "https://cdn.betterttv.net/emote/%s/2x.%s" % [id, image_type]
 		
 		# bttv uses webp for everything, so we'll just convert it regardless since we can't tell
 		# if it's static or animated
@@ -34,7 +35,7 @@ func fetch_emote_images(emotes):
 		if e.animated:
 			tex = await twitch_utils.fetch_animated(self, path, url)
 			if tex == null:
-				tex = await twitch_utils.fetch_static(self, path, "%s.png" % url)
+				tex = await twitch_utils.fetch_static(self, path, url)
 		else:
 			tex = await twitch_utils.fetch_static(self, path, url)
 		
