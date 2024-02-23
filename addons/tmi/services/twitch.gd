@@ -77,31 +77,29 @@ func enrich(obj: TmiAsyncState):
 	if obj is TmiUserState:
 		await fetch_user(obj)
 
-func fetch_user(baseProfile: TmiUserState):
-	var path = "user://profile/%s.profile" % baseProfile.id
-	var cached = _profiles.get(baseProfile.id, null)
+func fetch_user(profile: TmiUserState):
+	var path = "user://profile/%s.profile" % profile.id
+	var cached = _profiles.get(profile.id, null)
 	if cached:
 		if cached.expires_at < Time.get_unix_time_from_system():
-			_profiles.erase(baseProfile.id)
+			_profiles.erase(profile.id)
 		else:
-			baseProfile.display_name = cached.display_name
-			baseProfile.extra["profile_image_url"] = cached.extra["profile_image_url"]
+			profile.display_name = cached.display_name
+			profile.extra["profile_image_url"] = cached.extra["profile_image_url"]
 			if include_profile_images and cached.extra.get("profile_image") == null:
 				cached.extra["profile_image"] = await fetch_profile_image(cached)
-			baseProfile.extra["profile_image"] = cached.extra.get("profile_image")
+			profile.extra["profile_image"] = cached.extra.get("profile_image")
 			return
 	
-	var result = await http("users", {"id": baseProfile.id})
+	var result = await http("users", {"id": profile.id})
 	if result == null:
 		return
 	
 	var found_data = result.get("data", []).front()
 	
-	if found_data == null or found_data.id != baseProfile.id:
+	if found_data == null or found_data.id != profile.id:
 		return
 			
-	var profile = TmiUserState.new()
-	profile.id = baseProfile.id
 	profile.display_name = found_data.login
 	profile.extra["profile_image_url"] = found_data.profile_image_url
 	
@@ -112,7 +110,8 @@ func fetch_user(baseProfile: TmiUserState):
 	profile.expires_at = Time.get_unix_time_from_system() + (15 * 60.0)
 
 	# add to cache so the profile doesn't get removed due to garbage collection
-	_profiles[baseProfile.id] = profile
+	_profiles[profile.id] = profile
 	
 	user_cached.emit(profile)
+	
 	

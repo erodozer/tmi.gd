@@ -256,15 +256,17 @@ func _setup_connection():
 			var success = await request_permission(subscription, version)
 			if not success[0]:
 				push_error("Authentication failed for %s, disabling message type" % subscription)
-				if success[1] == 401:
+				if success[1] == 401 or success[1] == 403:
 					push_error("Invalid token, consider refreshing or clearing credentials")
 					connection_state = ConnectionState.FAILED
 					close_stream()
-					return
+					return false
 
 	print("[tmi/sub]: we're in 😎")
 	
 	connection_state = ConnectionState.STARTED
+	
+	return true
 
 func _handle_packet(packet: PackedByteArray):
 	# parse packet as list of json messages

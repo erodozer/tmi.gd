@@ -31,17 +31,17 @@ func _render_message(message: String, emotes: Dictionary, tmi: Tmi):
 	for r in stringReplacements:
 		message = message.replace(r.stringToReplace, r.replacement)
 		
-	return tmi._emotes.reduce(
-		func (acc, e):
-			return acc.replace(
-				e.code,
-				"[img=%d]%s[/img]" % [
+	var words = message.split(" ")
+	for e in tmi._emotes:
+		for i in range(len(words)):
+			var w = words[i]
+			if w == e.code:
+				words[i] = "[img=%d]%s[/img]" % [
 					(e.dimensions.width / e.dimensions.height) * 32,
 					e.texture.resource_path
 				]
-			),
-		message
-	);
+	
+	return " ".join(words)
 	
 func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 	if ircCommand.command != "PRIVMSG":
@@ -105,5 +105,6 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 			"raw_message": message,
 			"tags": ircCommand.metadata,
 			"sender": profile,
+			"timestamp": ircCommand.metadata["tmi-sent-ts"].to_int(),
 		}
 	)

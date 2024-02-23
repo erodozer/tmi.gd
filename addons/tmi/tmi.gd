@@ -82,12 +82,24 @@ func start():
 		
 	if credentials.token:
 		print("[tmi]: attempting to connect to EventSub")
-		eventsub.connect_to_server()
+		var success = await eventsub.connect_to_server()
+		if not success and has_node("OAuth"):
+			print("[tmi/sub]: token potentially expired, attempting refresh")
+			var oauth = get_node("OAuth") as TmiOAuthService
+			oauth.refresh_token()
+			success = await eventsub.connect_to_server() # attempt a second time after refreshing
+		if not success:
+			print("[tmi/sub]: unable to connect to eventsub.  Expiring token and falling back")
+			var newCredentials = TwitchCredentials.get_fallback_credentials()
+			newCredentials.client_id = credentials.client_id
+			newCredentials.client_secret = credentials.client_secret
+			newCredentials.channel = credentials.channel
+			set_credentials(newCredentials)
 	
 	# IRC is only useful for unauthenticated sessions
 	if not credentials.token:
 		print("[tmi]: attempting to connect to IRC")
-		irc.connect_to_server()
+		await irc.connect_to_server()
 
 func connection_state() -> ConnectionStatus:
 	if irc.connection_state == TmiEventStream.ConnectionState.STARTED:
@@ -104,7 +116,12 @@ func enrich(obj: TmiAsyncState):
 
 func login(credentials: TwitchCredentials):
 	if not credentials.client_id:
-		print("[tmi/oauth]: Client Id not provided, assuming unauthenticated session")
+		push_warning("[tmi/oauth]: Client Id not provided, assuming unauthenticated session")
+		set_credentials(credentials)
+		return
+		
+	if credentials.user_login.begins_with("justintv"):
+		push_warning("[tmi/oauth]: Anonymous session detected")
 		set_credentials(credentials)
 		return
 
@@ -115,7 +132,7 @@ func login(credentials: TwitchCredentials):
 	
 	var oauth = get_node("OAuth")
 	if oauth == null:
-		push_error("Can not login to Twitch, Tmi is missing OAuth service child")
+		push_warning("Can not login to Twitch, Tmi is missing OAuth service child")
 		return
 		
 	await oauth.login(credentials)

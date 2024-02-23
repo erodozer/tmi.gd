@@ -2,10 +2,12 @@ extends VBoxContainer
 
 @export var tmi: Tmi
 
+const SAVE_DATA = "user://tmi.json"
+
 func _ready():
 	tmi.credentials_updated.connect(
 		func (credentials):
-			var f = FileAccess.open("user://tmi.json", FileAccess.WRITE)
+			var f = FileAccess.open(SAVE_DATA, FileAccess.WRITE)
 			f.store_string(credentials.to_json())
 			f.close()
 			
@@ -51,7 +53,7 @@ func _ready():
 				%Rewards.add_child(title)
 	)
 	
-	var credentials = TwitchCredentials.load_from_file("user://tmi.json")
+	var credentials = TwitchCredentials.load_from_file(SAVE_DATA)
 	if credentials != null:
 		tmi.login(credentials)
 
