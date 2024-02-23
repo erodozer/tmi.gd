@@ -265,9 +265,10 @@ func _setup_connection():
 			var version = SUBSCRIPTION_TYPES[i][subscription]
 			var success = await request_permission(subscription, version)
 			if not success[0]:
-				push_error("Authentication failed for %s, disabling message type" % subscription)
+				push_warning("Authentication failed for %s, disabling message type" % subscription)
 				if success[1] == 401 or success[1] == 403:
-					push_error("Invalid token, consider refreshing or clearing credentials")
+					push_warning("Invalid token, consider refreshing or clearing credentials")
+					print("[tmi/sub]: invalid token, unable to request permissions.")
 					connection_state = ConnectionState.FAILED
 					close_stream()
 					return
