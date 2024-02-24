@@ -33,6 +33,9 @@ static func load_animated(path: String) -> AnimatedTexture:
 	return load(path + ".res") as AnimatedTexture
 	
 static func save_animated(path: String, buffer: PackedByteArray = []) -> Texture2D:
+	if not DirAccess.dir_exists_absolute(path.get_base_dir()):
+		DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+		
 	if ResourceLoader.exists("res://addons/magick_dumps/magick.gd"):
 		if magick_loader == null:
 			magick_loader = load("res://addons/magick_dumps/magick.gd").new()
@@ -60,7 +63,10 @@ static func load_static(filepath: String) -> Texture2D:
 	
 static func save_static(filepath: String, buffer: PackedByteArray) -> Texture2D:
 	var image = Image.new()
-	
+
+	if not DirAccess.dir_exists_absolute(filepath.get_base_dir()):
+		DirAccess.make_dir_recursive_absolute(filepath.get_base_dir())
+
 	if filepath.ends_with("png"):
 		var error = image.load_png_from_buffer(buffer)
 		if error != OK:
