@@ -6,9 +6,6 @@ func _init():
 	PRIVMSG_PARSER = RegEx.new()
 	PRIVMSG_PARSER.compile("#(?<channel>[^\\s]*)\\s:(?<message>.*)")
 	
-	if not DirAccess.dir_exists_absolute("user://emotes"):
-		DirAccess.make_dir_recursive_absolute("user://emotes")
-	
 func _render_message(message: String, emotes: Dictionary, tmi: Tmi):
 	var stringReplacements = []
 	
