@@ -69,6 +69,8 @@ func handle_chat_message(message, tmi):
 			"raw_message": event.message.text,
 			"tags": {
 				"badges": event.badges,
+				"cheer": event.cheer,
+				"reward_id": event.channel_points_custom_reward_id
 			},
 			"sender": profile,
 			"timestamp": message.timestamp
