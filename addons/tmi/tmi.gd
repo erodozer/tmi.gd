@@ -15,7 +15,6 @@ class EventType:
 @export var credentials: TwitchCredentials
 
 var _load_stack = {}
-var _emotes = []
 var _enrichable = []
 
 enum ConnectionStatus {

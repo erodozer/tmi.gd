@@ -9,11 +9,11 @@ func _on_twitch_command(type: String, evt):
 	if type != Tmi.EventType.ROOM_STATE:
 		return
 		
-	print("[tmi/bttv]: downloading 7tv emotes")
+	print("[tmi/7tv]: fetching emote list")
 	tmi._load_stack["7tv"] = true
 	await preload_emotes(evt.channel_id)
 	tmi._load_stack.erase("7tv")
-	print("[tmi/bttv]: preloading 7tv emotes completed")
+	print("[tmi/7tv]: fetching emotes list completed")
 
 func preload_emotes(channel_id:String):
 	var body = await twitch_utils.fetch(self,
@@ -25,6 +25,9 @@ func preload_emotes(channel_id:String):
 	if body.code != 200:
 		push_warning("unable to fetch emotes for channel %s" % channel_id)
 		return
+	
+	var tmi = get_parent() as Tmi
+	var text_processor = tmi.get_node("TextProcessor")
 	
 	var emotes = []
 	if body.data.emote_set and body.data.emote_set.emotes:
@@ -46,38 +49,16 @@ func preload_emotes(channel_id:String):
 				return "2x" in f.static_name and f.format == "WEBP"
 		).front()
 		
-		url = "https:%s/%s" % [url, image.name]
-		
 		if image:
-			var tex
-			if image.frame_count > 1:
-				tex = await twitch_utils.fetch_animated(
-					self,
-					"user://emotes/7tv_%s.webp" % id,
-					url,
-				)
-			else:
-				tex = await twitch_utils.fetch_static(
-					self,
-					"user://emotes/7tv_%s.webp" % id,
-					url,
-				)
-			
-			if tex != null:
-				acc.append({
-					"code": name,
-					"texture": tex,
-					"dimensions": {
-						"width": image.width,
-						"height": image.height
-					}
-				})
-			else:
-				push_error("failed to load image %s" % url)
+			text_processor.register_emote(
+				name,
+				id,
+				"https:%s/%s" % [url, image.name],
+				{
+					"provider": "7tv",
+					"animated": image.frame_count > 1,
+					"format": image.format.to_lower(),
+					"dimensions": Vector2i(image.width, image.height)
+				}
+			)
 	
-	var tmi = get_parent() as Tmi
-	tmi._emotes.append_array(acc)
-	tmi._emotes.sort_custom(
-		func (a, b):
-			return len(a.code) > len(b.code)
-	)

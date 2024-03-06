@@ -1,13 +1,14 @@
 extends TmiService
 class_name TmiTwitchService
 
+const EMOTE_URL = "https://static-cdn.jtvnw.net/emoticons/v2/%s/%s/dark/3.0"
+
 const utils = preload("../utils.gd")
 
 @export var include_profile_images = true
 
 var credentials: TwitchCredentials
 
-var _emotes = {}
 var _profiles = {}
 
 signal user_cached(profile)
@@ -35,30 +36,6 @@ func http(command: String, params = {}, credentials = tmi.credentials):
 	if res.code < 300:
 		return res.data
 	return null
-
-## prefetch emote images and cache them to local storage
-func fetch_twitch_emote(emote_id: String, format = ["animated", "static"]):
-	if emote_id in _emotes:
-		return _emotes[emote_id]
-	
-	# first we try to get an animated version if it exists
-	# else we'll fall back to static png
-	var tex: Texture2D
-	for type in format:
-		var url = "https://static-cdn.jtvnw.net/emoticons/v2/%s/%s/dark/3.0" % [emote_id, type]
-		
-		match type:
-			"static":
-				tex = await utils.fetch_static(self, "user://emotes/%s.png" % emote_id, url)
-				# prefer animated
-				if tex and not (emote_id in _emotes):
-					_emotes[emote_id] = tex
-			"animated":
-				tex = await utils.fetch_animated(self, "user://emotes/%s.gif" % emote_id, url)
-				if tex:
-					_emotes[emote_id] = tex
-			
-	return tex
 
 func fetch_profile_image(profile: TmiUserState):
 	var tex: Texture2D
