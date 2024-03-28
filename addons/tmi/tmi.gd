@@ -31,8 +31,6 @@ signal connection_status_changed(status: ConnectionStatus)
 var irc: TmiEventStream
 var eventsub: TmiEventStream
 
-var channel: TmiChannelState = TmiChannelState.new()
-
 ## Updates the credentials of the Tmi session and attempts
 ## to reopen sockets
 ## 
@@ -43,13 +41,6 @@ func set_credentials(c: TwitchCredentials):
 		return
 		
 	credentials = c
-	
-	if c.token:
-		var new_channel = TmiChannelState.new()
-		new_channel.id = c.channel
-		new_channel.broadcaster_user_id = c.broadcaster_user_id
-
-		channel = await enrich(new_channel)
 	
 	credentials_updated.emit(credentials)
 

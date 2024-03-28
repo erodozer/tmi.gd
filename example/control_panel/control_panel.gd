@@ -19,7 +19,6 @@ func _ready():
 			%ClientSecret.text = credentials.client_secret
 			%Channel.text = credentials.channel
 			%BroadcastUserId.text = credentials.broadcaster_user_id
-			update_channel_stats()
 	)
 	tmi.credentials_updated.connect(
 		func (credentials):
@@ -58,6 +57,7 @@ func _ready():
 			if type in [Tmi.EventType.FOLLOW, Tmi.EventType.SUBSCRIPTION]:
 				update_channel_stats()
 	)
+	tmi.get_node("ChannelMetrics").updated.connect(update_channel_stats)
 	
 	var credentials = TwitchCredentials.load_from_file(SAVE_DATA)
 	if credentials != null:
@@ -95,9 +95,10 @@ func _on_channel_text_submitted(new_text):
 	pass # Replace with function body.
 
 func update_channel_stats():
-	%Followers.text = "%d" % tmi.channel.followers
-	if tmi.channel.latest_follower != null:
-		%LatestFollower.text = tmi.channel.latest_follower.display_name
-	%Subscribers.text = "%d" % tmi.channel.subscribers
-	if tmi.channel.latest_subscriber != null:
-		%LatestSubscriber.text = tmi.channel.latest_subscriber.display_name
+	var metrics = tmi.get_node("ChannelMetrics")
+	%Followers.text = "%d" % metrics.followers
+	if metrics.latest_follower != null:
+		%LatestFollower.text = metrics.latest_follower.display_name
+	%Subscribers.text = "%d" % metrics.subscribers
+	if metrics.latest_subscriber != null:
+		%LatestSubscriber.text = metrics.latest_subscriber.display_name

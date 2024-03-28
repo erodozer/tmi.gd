@@ -1,5 +1,5 @@
 extends Node
-class_name EventQueue
+class_name TmiEventQueue
 
 @export var tmi: Tmi
 var _evt_queue = []
