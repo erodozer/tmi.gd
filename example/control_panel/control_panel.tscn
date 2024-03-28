@@ -119,6 +119,64 @@ layout_mode = 2
 size_flags_horizontal = 8
 text = "Login"
 
+[node name="HSeparator2" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Channel Information"
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer"]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Follower Count"
+
+[node name="Followers" type="LineEdit" parent="VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="Label2" type="Label" parent="VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Latest Follower"
+
+[node name="LatestFollower" type="LineEdit" parent="VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="Label3" type="Label" parent="VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Subscriber Count"
+
+[node name="Subscribers" type="LineEdit" parent="VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="Label4" type="Label" parent="VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Latest Subscriber"
+
+[node name="LatestSubscriber" type="LineEdit" parent="VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
 [node name="HSeparator" type="HSeparator" parent="."]
 layout_mode = 2
 
