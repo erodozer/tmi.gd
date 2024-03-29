@@ -20,16 +20,14 @@ var COMMAND_REGEX: RegEx
 	await preload("./commands/userstate.gd").new(),
 ]
 
+var _holding_messages = []
+
 func _init():
 	# twitch IRC command parsing using regex grouops
 	COMMAND_REGEX = RegEx.new()
 	COMMAND_REGEX.compile("(@(?<metadata>.*)\\s)?(:(.*!.*@)?((?<username>.*)\\.)?tmi\\.twitch\\.tv\\s)(?<command>(\\S*))\\s*(?<message>.*)")
 	
 	message_received.connect(handle_message)
-	
-func _ready():
-	for c in commands:
-		message_received.connect(c.handle_message.bind(tmi))
 	
 func connect_to_server():
 	close_stream()
@@ -48,10 +46,10 @@ func close_stream():
 	if connection_state != ConnectionState.FAILED:
 		connection_state = ConnectionState.NOT_STARTED
 	
-func _process(_delta):
+func poll():
 	if socket == null:
 		return
-	
+		
 	socket.poll()
 	
 	var state = socket.get_ready_state()
@@ -159,7 +157,7 @@ func _handle_packet(packet: PackedByteArray):
 	for message in event.strip_edges().split("\n"):
 		var command = _parse_twitch_message(message)
 		if command:
-			message_received.emit(command)
+			handle_websocket_message(command)
 	
 ## Keeps the connection alive by sending PING requests to the server
 func _send_ping():
@@ -210,7 +208,7 @@ func _parse_twitch_message(rawMessage: String):
 	
 	return command
 	
-func handle_message(ircCommand: TwitchIrcCommand):
+func handle_websocket_message(ircCommand: TwitchIrcCommand):
 	match ircCommand.command:
 		"CAP":
 			request.emit(ircCommand.message.begins_with("* ACK"))
@@ -220,3 +218,9 @@ func handle_message(ircCommand: TwitchIrcCommand):
 			authenticated.emit(true)
 		"PING":
 			_send_pong()
+		_:
+			message_queue.append(ircCommand)
+		
+func handle_message(message):
+	for c in commands:
+		c.handle_message(message, tmi)

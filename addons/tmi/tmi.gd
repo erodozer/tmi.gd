@@ -6,6 +6,7 @@ class EventType:
 	const DELETE_MESSAGE = "delete-message"
 	const FOLLOW = "follow"
 	const SUBSCRIPTION = "subscription"
+	const GIFT = "gift"
 	const REDEEM = "redeem"
 	const RAID = "raid"
 	const USER_CHANGED = "userstate"
@@ -15,7 +16,6 @@ class EventType:
 @export var credentials: TwitchCredentials
 
 var _load_stack = {}
-var _emotes = []
 var _enrichable = []
 
 enum ConnectionStatus {
@@ -43,7 +43,7 @@ func set_credentials(c: TwitchCredentials):
 	credentials = c
 	
 	credentials_updated.emit(credentials)
-	
+
 	start()
 
 func _ready():
@@ -114,17 +114,17 @@ func enrich(obj: TmiAsyncState):
 func login(credentials: TwitchCredentials):
 	if not credentials.client_id:
 		push_warning("[tmi/oauth]: Client Id not provided, assuming unauthenticated session")
-		set_credentials(credentials)
+		await set_credentials(credentials)
 		return
 		
 	if credentials.user_login.begins_with("justintv"):
 		push_warning("[tmi/oauth]: Anonymous session detected")
-		set_credentials(credentials)
+		await set_credentials(credentials)
 		return
 
 	if credentials.token:
 		push_warning("[tmi/oauth]: Access token provided, assuming authenticated session")
-		set_credentials(credentials)
+		await set_credentials(credentials)
 		return
 	
 	var oauth = get_node("OAuth")

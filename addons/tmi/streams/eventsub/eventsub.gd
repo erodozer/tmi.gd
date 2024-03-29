@@ -121,7 +121,6 @@ var keep_alive_timer: Timer
 
 @export_enum("LIVE", "LOCAL") var mode = "LIVE"
 
-signal message_received(command)
 signal socket_connected
 signal authenticated(success)
 signal request
@@ -135,10 +134,6 @@ signal channel_set
 	await preload("./commands/subscription.gd").new()
 ]
 
-func _init():
-	# twitch IRC command parsing using regex grouops
-	message_received.connect(self.handle_message)
-	
 func _ready():
 	keep_alive_timer = Timer.new()
 	keep_alive_timer.name = "KeepAlive"
@@ -186,7 +181,7 @@ func close_stream():
 	if connection_state != ConnectionState.FAILED:
 		connection_state = ConnectionState.NOT_STARTED
 	
-func _process(_delta):
+func poll():
 	for socket in [self.socket, reconnect_socket]:
 		if socket == null:
 			continue
@@ -291,9 +286,13 @@ func _handle_packet(packet: PackedByteArray):
 	for message in event.strip_edges().split("\n", false):
 		var data = JSON.parse_string(message)
 		if data:
-			message_received.emit(data)
+			handle_websocket_message(data)
 
-func handle_message(command: Dictionary):
+func handle_message(message):
+	for c in commands:
+		c.handle_message(message, tmi)
+
+func handle_websocket_message(command: Dictionary):
 	match command.metadata.message_type:
 		"session_keepalive":
 			if not keep_alive_timer.paused:
@@ -324,7 +323,5 @@ func handle_message(command: Dictionary):
 			notification.timestamp = Time.get_unix_time_from_datetime_string(command.metadata.message_timestamp)
 			notification.event = command.payload.event
 			
-			var tmi = get_parent()
-			for c in commands:
-				c.handle_message(notification, tmi)
-				
+			message_queue.append(notification)
+		

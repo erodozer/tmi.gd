@@ -3,6 +3,15 @@ extends ScrollContainer
 const ChatMessage = preload("./chat_message.tscn")
 const HISTORY_LIMIT = 100
 
+@export var animate_incoming_message = true
+var active_tween: Tween
+
+func _ready():
+	_expand_placeholder.call_deferred()
+	
+func _expand_placeholder():
+	%FillPlaceholder.custom_minimum_size = %FillPlaceholder.size
+
 func _on_twitch_command(type, event):
 	if type == Tmi.EventType.DELETE_MESSAGE:
 		var m = %History.get_node(event.message)
@@ -36,7 +45,22 @@ func _on_twitch_command(type, event):
 	m.name = event.id
 	%History.add_child(m)
 	
-	if get_child_count() > HISTORY_LIMIT:
-		remove_child(get_child(0))
+	if %History.get_child_count() > HISTORY_LIMIT:
+		%History.remove_child(get_child(0))
 	
-	call_deferred("ensure_control_visible", m)
+	await get_tree().process_frame
+	
+	if animate_incoming_message:
+		_animate(m)
+	else:
+		call_deferred("ensure_control_visible", m)
+
+func _animate(message: Control):
+	if active_tween:
+		active_tween.stop()
+	
+	await get_tree().process_frame
+	
+	active_tween = create_tween()
+	var scrollbar = get_v_scroll_bar()
+	active_tween.tween_property(scrollbar, "value", scrollbar.max_value, 0.5).set_ease(Tween.EASE_IN_OUT)

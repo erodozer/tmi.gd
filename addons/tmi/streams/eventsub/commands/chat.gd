@@ -1,6 +1,9 @@
 extends RefCounted
 
 func handle_message(message, tmi: Tmi):
+	if not tmi._load_stack.is_empty():
+		return
+		
 	match message.notification_type:
 		"channel.chat.notification:1":
 			pass
@@ -23,33 +26,30 @@ func handle_message(message, tmi: Tmi):
 				}
 			)
 			
-func _render_message(fragments, tmi):
-	var bbcode = []
+func _to_fragments(fragments):
+	var out = []
 	for f in fragments:
 		match f.type:
 			"text":
-				# inject emotes from other services
-				var words = f.text.split(" ")
-				for e in tmi._emotes:
-					for i in range(len(words)):
-						var w = words[i]
-						if w == e.code:
-							words[i] = "[img=%d]%s[/img]" % [
-								e.dimensions.width,
-								e.texture.resource_path,
-							]
-				bbcode.append(" ".join(words))
+				out.append({
+					"type": "text",
+					"text": f.text
+				})
 			"emote":
-				var tex = await tmi.get_node("TwitchAPI").fetch_twitch_emote(
-					f.emote.id,
-					f.emote.format,
-				)
-				if tex != null:
-					bbcode.append("[img=%d]%s[/img]" % [32, tex.resource_path])
-				else:
-					bbcode.append(f.text)
+				out.append({
+					"type": "emote",
+					"text": f.text,
+					"emote": {
+						"provider": "twitch",
+						"id": f.emote.id,
+						"format": "gif" if "animated" in f.emote.format else "png",
+						"animated": "animated" in f.emote.format,
+						"url": TmiTwitchService.EMOTE_URL % [f.emote.id, "animated" if "animated" in f.emote.format else "static"],
+						"dimensions": Vector2i(32, 32)
+					}
+				})
 	
-	return " ".join(bbcode)
+	return out
 	
 func handle_chat_message(message, tmi):
 	var event = message.event
@@ -58,19 +58,22 @@ func handle_chat_message(message, tmi):
 	profile.display_name = event.chatter_user_name
 	profile.color = Color.from_string(event.color, "#ffffff")
 	profile = await tmi.enrich(profile)
+	
+	var text = TmiChatMessage.new()
+	text.id = event.message_id
+	text.channel = event.broadcaster_user_login
+	text.raw_message = event.message.text
+	text.fragments = _to_fragments(event.message.fragments)
+	text.sender = profile
+	text.tags = {
+		"badges": event.badges,
+		"cheer": event.cheer,
+		"reward_id": event.channel_points_custom_reward_id
+	}
+	text.timestamp = message.timestamp
+	text = await tmi.enrich(text)
 		
-	var text = await _render_message(event.message.fragments, tmi)
 	tmi.command.emit(
 		Tmi.EventType.CHAT_MESSAGE,
-		{
-			"id": event.message_id,
-			"channel": event.broadcaster_user_login,
-			"text": text,
-			"raw_message": event.message.text,
-			"tags": {
-				"badges": event.badges,
-			},
-			"sender": profile,
-			"timestamp": message.timestamp
-		}
+		text,
 	)

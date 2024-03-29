@@ -253,7 +253,7 @@ func _code_to_token(code: String):
 	newCredentials.channel = credentials.channel
 	newCredentials.broadcaster_user_id = await _lookup_channel(body.access_token)
 	
-	tmi.set_credentials(newCredentials)
+	await tmi.set_credentials(newCredentials)
 	
 func _idtoken_credentials(id_token, access_token):
 	var body = id_token.split(".")[1] + "==" # add padding to base64 so godot can parse it
@@ -277,7 +277,7 @@ func _idtoken_credentials(id_token, access_token):
 	newCredentials.client_id = credentials.client_id
 	newCredentials.token = access_token
 	
-	tmi.set_credentials(newCredentials)
+	await tmi.set_credentials(newCredentials)
 	
 func refresh_token():
 	if tmi.credentials == null:
@@ -316,4 +316,4 @@ func refresh_token():
 	newCredentials.token = body.access_token
 	newCredentials.refresh_token = body.refresh_token
 	
-	tmi.set_credentials(newCredentials)
+	await tmi.set_credentials(newCredentials)

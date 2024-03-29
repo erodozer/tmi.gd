@@ -52,6 +52,12 @@ func _ready():
 				%Rewards.add_child(id)
 				%Rewards.add_child(title)
 	)
+	tmi.command.connect(
+		func (type, event):
+			if type in [Tmi.EventType.FOLLOW, Tmi.EventType.SUBSCRIPTION]:
+				update_channel_stats()
+	)
+	tmi.get_node("ChannelMetrics").updated.connect(update_channel_stats)
 	
 	var credentials = TwitchCredentials.load_from_file(SAVE_DATA)
 	if credentials != null:
@@ -87,3 +93,12 @@ func _on_client_id_text_changed(new_text):
 
 func _on_channel_text_submitted(new_text):
 	pass # Replace with function body.
+
+func update_channel_stats():
+	var metrics = tmi.get_node("ChannelMetrics")
+	%Followers.text = "%d" % metrics.followers
+	if metrics.latest_follower != null:
+		%LatestFollower.text = metrics.latest_follower.display_name
+	%Subscribers.text = "%d" % metrics.subscribers
+	if metrics.latest_subscriber != null:
+		%LatestSubscriber.text = metrics.latest_subscriber.display_name

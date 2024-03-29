@@ -27,7 +27,7 @@ func handle_message(message, tmi: Tmi):
 			)	
 		"channel.subscription.gift:1":
 			tmi.command.emit(
-				Tmi.EventType.SUBSCRIPTION,
+				Tmi.EventType.GIFT,
 				{
 					"channel": message.event.broadcaster_user_login,
 					"user": {
@@ -35,7 +35,7 @@ func handle_message(message, tmi: Tmi):
 						"display_name": message.event.user_name if not message.event.is_anonymous else "Anonymous"
 					},
 					"is_gift": true,
-					"gifted": message.event.total,
+					"amount": message.event.total,
 					"text": message.event.get("user_input", ""),
 				}
 			)	
