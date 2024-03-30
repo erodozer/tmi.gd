@@ -98,7 +98,9 @@ func update_channel_stats():
 	var metrics = tmi.get_node("ChannelMetrics")
 	%Followers.text = "%d" % metrics.followers
 	if metrics.latest_follower != null:
+		%LatestFollowerProfile.texture = metrics.latest_follower.extra.profile_image
 		%LatestFollower.text = metrics.latest_follower.display_name
 	%Subscribers.text = "%d" % metrics.subscribers
 	if metrics.latest_subscriber != null:
+		%LatestSubscriberProfile.texture = metrics.latest_subscriber.extra.profile_image
 		%LatestSubscriber.text = metrics.latest_subscriber.display_name

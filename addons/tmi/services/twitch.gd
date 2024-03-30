@@ -82,6 +82,6 @@ func fetch_user(profile: TmiUserState):
 			
 		profile.cache(PROFILE_CACHE_KEY, cache_duration)
 		
-	if not profile.is_cached(PROFILE_IMAGE_CACHE_KEY) and include_profile_images and img_dirty:
+	if include_profile_images and (img_dirty or not profile.is_cached(PROFILE_IMAGE_CACHE_KEY)):
 		profile.extra["profile_image"] = await fetch_profile_image(profile)
 		profile.cache(PROFILE_IMAGE_CACHE_KEY, image_cache_duration)
