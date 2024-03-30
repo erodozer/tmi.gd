@@ -53,11 +53,13 @@ func _to_fragments(fragments):
 	
 func handle_chat_message(message, tmi):
 	var event = message.event
-	var profile = TmiUserState.new()
-	profile.id =  event.chatter_user_id
-	profile.display_name = event.chatter_user_name
-	profile.color = Color.from_string(event.color, "#ffffff")
-	profile = await tmi.enrich(profile)
+	var profile = await tmi.get_user(
+		event.chatter_user_id,
+		{
+			"display_name": event.chatter_user_name,
+			"color": Color.from_string(event.color, Color.WHITE)
+		}
+	)
 	
 	var text = TmiChatMessage.new()
 	text.id = event.message_id

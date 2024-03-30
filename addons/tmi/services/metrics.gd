@@ -26,10 +26,12 @@ func fetch_from_api(c: TwitchCredentials):
 		followers = int(result.total)
 		if len(result.data) > 0:
 			var user =  result.data.front()
-			var profile = TmiUserState.new()
-			profile.id = user.user_id
-			profile.display_name = user.user_name
-			await tmi.enrich(profile)
+			var profile = await tmi.get_user(
+				user.user_id,
+				{
+					"display_name": user.user_name,
+				}
+			)
 			
 			latest_follower = profile
 	else:
@@ -40,10 +42,12 @@ func fetch_from_api(c: TwitchCredentials):
 	subscribers = int(result.total)
 	if len(result.data) > 0:
 		var user =  result.data.front()
-		var profile = TmiUserState.new()
-		profile.id = user.user_id
-		profile.display_name = user.user_name
-		await tmi.enrich(profile)
+		var profile = await tmi.get_user(
+			user.user_id,
+			{
+				"display_name": user.user_name
+			}
+		)
 		
 		latest_subscriber = profile
 		
@@ -56,19 +60,22 @@ func process_event(type, event):
 	# handle a subset of commands to update stateful data managed by the API
 	if type == Tmi.EventType.FOLLOW:
 		followers += 1
-		# TODO get profile
-		var profile = TmiUserState.new()
-		profile.id = event.user.id
-		profile.display_name = event.user.display_name
-		await tmi.enrich(profile)
+		var profile = await tmi.get_user(
+			event.user.id,
+			{
+				"display_name": event.user.display_name
+			}
+		)
 		latest_follower = profile
 
 	if type == Tmi.EventType.SUBSCRIPTION:
 		subscribers += 1
-		var profile = TmiUserState.new()
-		profile.id = event.user.id
-		profile.display_name = event.user.display_name
-		await tmi.enrich(profile)
+		var profile = await tmi.get_user(
+			event.user.id,
+			{
+				"display_name": event.user.display_name
+			}
+		)
 		latest_subscriber = profile
 	
 	updated.emit()

@@ -149,7 +149,17 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Latest Follower"
 
-[node name="LatestFollower" type="LineEdit" parent="VBoxContainer/GridContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/GridContainer"]
+layout_mode = 2
+
+[node name="LatestFollowerProfile" type="TextureRect" parent="VBoxContainer/GridContainer/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LatestFollower" type="LineEdit" parent="VBoxContainer/GridContainer/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -171,7 +181,17 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Latest Subscriber"
 
-[node name="LatestSubscriber" type="LineEdit" parent="VBoxContainer/GridContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/GridContainer"]
+layout_mode = 2
+
+[node name="LatestSubscriberProfile" type="TextureRect" parent="VBoxContainer/GridContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LatestSubscriber" type="LineEdit" parent="VBoxContainer/GridContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

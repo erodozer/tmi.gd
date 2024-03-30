@@ -111,10 +111,12 @@ func handle_message(ircCommand: TwitchIrcCommand, tmi: Tmi):
 		
 	ircCommand.metadata.emotes = e
 	
-	var profile = TmiUserState.new()
-	profile.id =  ircCommand.metadata["user-id"]
-	profile.display_name = ircCommand.metadata['display-name']
-	profile = await tmi.enrich(profile)
+	var profile = await tmi.get_user(
+		ircCommand.metadata["user-id"],
+		{
+			"display_name": ircCommand.metadata['display-name']
+		}
+	)
 	
 	var chat = TmiChatMessage.new()
 	chat.id = ircCommand.metadata['id']
