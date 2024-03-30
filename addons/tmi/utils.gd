@@ -150,3 +150,61 @@ static func fetch(n: Node, url: String, method: HTTPClient.Method = HTTPClient.M
 		"code": status,
 		"data": body
 	}
+	
+static func deserialize(a):
+	if a == null:
+		return null
+	if a is String and a.begins_with("#"):
+		return Color.from_string(a, Color.WHITE)
+	if a is Array:
+		var data = []
+		for v in a:
+			var value = deserialize(v)
+			if value != null:
+				data.append(value)
+		return data
+	if a is Dictionary:
+		var data = {}
+		for v in a.keys():
+			var value = deserialize(a[v])
+			if value != null:
+				data[v] = value
+		return data
+	return a
+	
+static func serialize(a, serialize_objects=true):
+	if a == null:
+		return null
+		
+	if a is Array:
+		var data = []
+		for value in a:
+			var v = serialize(value, false)
+			if v != null:
+				data.append(v)
+		return data
+	elif a is Dictionary:
+		var data = {}
+		for k in a:
+			if k.begins_with("_"):
+				continue
+			var value = serialize(a[k], false)
+			if value == null:
+				continue			
+			data[k] = value
+		return data
+	elif a is Color:
+		return "#%s" % a.to_html()
+	elif a is Object:
+		if not serialize_objects:
+			return null
+		var data = {}
+		for p in a.get_property_list():
+			if p.name.begins_with("_"):
+				continue
+			var value = serialize(a.get(p.name), false)
+			if value == null:
+				continue
+			data[p.name] = value
+		return data
+	return a

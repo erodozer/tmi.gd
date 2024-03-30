@@ -31,6 +31,20 @@ signal connection_status_changed(status: ConnectionStatus)
 var irc: TmiEventStream
 var eventsub: TmiEventStream
 
+# user profiles and caching are a core component of tmi.gd
+# services may enrich profiles, but they will persist at this root level
+
+## Length of time in seconds that newly enriched profiles should be cached for.
+## This caching is for the profile object as a whole.  Individual services may have their
+## own caching policies attached to profiles, which are managed on their own.
+## Profiles should have their expiration timestamps extended whenever they appear
+## from incoming messages.
+## 
+## Default: 24 hr
+@export var profile_cache_duration = 24 * 3600 # 24 hr default
+
+var _profiles = {}
+
 ## Updates the credentials of the Tmi session and attempts
 ## to reopen sockets
 ## 
@@ -133,3 +147,34 @@ func login(credentials: TwitchCredentials):
 		return
 		
 	await oauth.login(credentials)
+
+func get_user(user_id: String, data: Dictionary) -> TmiUserState:
+	var profile = TmiUserState.new()
+	profile.id = user_id
+	
+	var path = "user://profile/%s.profile" % profile.id
+	var cached = _profiles.get(profile.id)
+	if cached == null:
+		if FileAccess.file_exists(path):
+			cached = TmiUserState.from_json(FileAccess.get_file_as_string(path))
+			
+	if cached == null or (cached != null and not cached.is_cached("$self")):
+		_profiles[profile.id] = profile
+	else:
+		profile = cached
+	profile.cache("$self", profile_cache_duration)
+
+	for k in data.keys():
+		profile.set(k, data[k])
+	
+	await enrich(profile)
+	
+	DirAccess.make_dir_recursive_absolute(
+		ProjectSettings.globalize_path("user://profile")
+	)
+	var json = profile.to_json()
+	var out = FileAccess.open(path, FileAccess.WRITE_READ)
+	out.store_string(json)
+	out.close()
+	
+	return profile

@@ -2,8 +2,13 @@ extends Node
 class_name TmiPronounsService
 
 const utils = preload("../utils.gd")
+const CACHE_KEY = "pronouns"
 
 @onready var tmi: Tmi = get_parent()
+
+## cache lifespan in seconds.
+## Alejo requests that this not be any shorter than 5 minutes to prevent stress on the server
+@export var cache_duration: int = 3600 * 10
 
 var _pronouns = []
 
@@ -16,10 +21,11 @@ func enrich(obj: TmiAsyncState):
 		return
 		
 	var profile = obj as TmiUserState
-	if "pronouns" in profile.extra:
+	if profile.is_cached(CACHE_KEY):
 		return
 	
 	var result = await utils.fetch(self, "https://api.pronouns.alejo.io/v1/users/%s" % profile.display_name, HTTPClient.METHOD_GET, {}, {}, true)
+	profile.cache(CACHE_KEY, cache_duration)
 	
 	if result.code != 200:
 		return
@@ -34,4 +40,3 @@ func enrich(obj: TmiAsyncState):
 		primary.subject,
 		secondary.subject if secondary != primary else secondary.object
 	]
-
