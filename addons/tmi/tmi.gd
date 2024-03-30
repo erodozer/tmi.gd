@@ -157,6 +157,7 @@ func get_user(user_id: String, data: Dictionary) -> TmiUserState:
 	if cached == null:
 		if FileAccess.file_exists(path):
 			cached = TmiUserState.from_json(FileAccess.get_file_as_string(path))
+			_profiles[profile.id] = cached
 			
 	if cached == null or (cached != null and not cached.is_cached("$self")):
 		_profiles[profile.id] = profile
