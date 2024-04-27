@@ -144,7 +144,7 @@ static func fetch(n: Node, url: String, method: HTTPClient.Method = HTTPClient.M
 		body = JSON.parse_string(body)
 	
 	if status >= 400:
-		push_error("[tmi/fetch]: request failed, status: %d, body: %s" % [status, body])
+		push_error("[tmi/fetch]: request failed, url:%s, status: %d, body: %s, data:%s" % [url, status, body, data])
 	
 	return {
 		"code": status,
