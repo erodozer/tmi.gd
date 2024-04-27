@@ -15,7 +15,8 @@ run/main_scene="res://example/example.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
 tmi/client_id=""
+tmi/client_secret=""
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/magick_dumps/plugin.cfg")
+enabled=PackedStringArray()
