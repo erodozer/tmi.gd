@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cmfr6463oc3to"]
+[gd_scene load_steps=10 format=3 uid="uid://cmfr6463oc3to"]
 
 [ext_resource type="Script" path="res://addons/tmi/tmi.gd" id="1_3yu75"]
 [ext_resource type="Script" path="res://addons/tmi/services/twitch.gd" id="3_4fr7a"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://addons/tmi/text_processor.gd" id="7_hbgvc"]
 [ext_resource type="Script" path="res://addons/tmi/services/metrics.gd" id="8_kcw65"]
 [ext_resource type="Script" path="res://addons/tmi/services/oauth.gd" id="8_rfcan"]
+[ext_resource type="Script" path="res://addons/tmi/services/heat.gd" id="9_aek43"]
 
 [node name="Tmi" type="Node"]
 script = ExtResource("1_3yu75")
@@ -34,6 +35,9 @@ script = ExtResource("7_hbgvc")
 [node name="ChannelMetrics" type="Node" parent="." node_paths=PackedStringArray("tmi")]
 script = ExtResource("8_kcw65")
 tmi = NodePath("..")
+
+[node name="Heat" type="Node" parent="."]
+script = ExtResource("9_aek43")
 
 [connection signal="command" from="." to="7tvAPI" method="_on_twitch_command"]
 [connection signal="command" from="." to="BttvAPI" method="_on_twitch_command"]
