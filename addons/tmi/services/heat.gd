@@ -25,6 +25,10 @@ func connect_to_websocket():
 	socket.connect_to_url("wss://heat-api.j38.net/channel/%s" % target_channel_id)
 
 func _process(_delta):
+	# Don't poll until we have a channel ID
+	if (target_channel_id == null):
+		return
+		
 	socket.poll()
 	var state = socket.get_ready_state()
 	if state == WebSocketPeer.STATE_OPEN:
