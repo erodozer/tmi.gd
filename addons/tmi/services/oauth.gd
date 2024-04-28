@@ -188,10 +188,7 @@ func _send_response(status_code: String, body: String):
 	peer.disconnect_from_host()
 	peer = null
 	
-func _lookup_channel(access_token, channel = null):
-	if (channel == null and credentials != null and !credentials.channel.is_empty()):
-		channel = credentials.channel
-
+func _lookup_channel(access_token, channel):
 	var broadcaster = await utils.fetch(
 		self,
 		"https://api.twitch.tv/helix/users",
@@ -252,8 +249,11 @@ func _code_to_token(code: String):
 		"display_name": payload.data.get("preferred_username", ""),
 		"image": payload.data.get("picture", "")
 	}
+	if credentials.channel:
+		newCredentials.channel = credentials.channel
+	else:
+		newCredentials.channel = newCredentials.user_login
 	
-	newCredentials.channel = credentials.channel if !credentials.channel.is_empty() else newCredentials.user_login
 	newCredentials.broadcaster_user_id = await _lookup_channel(body.access_token, newCredentials.channel)
 	
 	await tmi.set_credentials(newCredentials)
@@ -273,7 +273,7 @@ func _idtoken_credentials(id_token, access_token):
 	}
 	if credentials.channel:
 		newCredentials.channel = credentials.channel
-		newCredentials.broadcaster_user_id = await _lookup_channel(access_token)
+		newCredentials.broadcaster_user_id = await _lookup_channel(access_token, newCredentials.channel)
 	else:
 		newCredentials.channel = payload.preferred_username
 		newCredentials.broadcaster_user_id = payload.sub
