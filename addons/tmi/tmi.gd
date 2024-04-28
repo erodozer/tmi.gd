@@ -17,7 +17,6 @@ class EventType:
 
 var _load_stack = {}
 var _enrichable = []
-var _prev_connection_state = ConnectionStatus.NOT_CONNECTED
 
 enum ConnectionStatus {
 	NOT_CONNECTED,
@@ -71,14 +70,14 @@ func _ready():
 	add_child(irc)
 	add_child(eventsub)
 	
-	var _prev_connection_state = ConnectionStatus.NOT_CONNECTED
+	var prev_connection_state = ConnectionStatus.NOT_CONNECTED
 	var connection_poller = Timer.new()
 	connection_poller.timeout.connect(
 		func():
 			var curr_connection_state = connection_state()
-			if _prev_connection_state != curr_connection_state:
+			if prev_connection_state != curr_connection_state:
 				connection_status_changed.emit(curr_connection_state)
-			_prev_connection_state = curr_connection_state
+			prev_connection_state = curr_connection_state
 	)
 	add_child(connection_poller)
 	connection_poller.start(1.0)

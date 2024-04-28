@@ -253,8 +253,8 @@ func _code_to_token(code: String):
 		"image": payload.data.get("picture", "")
 	}
 	
-	newCredentials.channel = credentials.channel if !credentials.channel.is_empty() else payload.data.get("preferred_username", "")
-	newCredentials.broadcaster_user_id = await _lookup_channel(body.access_token, newCredentials.user_login)
+	newCredentials.channel = credentials.channel if !credentials.channel.is_empty() else newCredentials.user_login
+	newCredentials.broadcaster_user_id = await _lookup_channel(body.access_token, newCredentials.channel)
 	
 	await tmi.set_credentials(newCredentials)
 	
