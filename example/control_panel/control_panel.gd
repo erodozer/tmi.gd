@@ -60,6 +60,8 @@ func _ready():
 	tmi.get_node("ChannelMetrics").updated.connect(update_channel_stats)
 	
 	var credentials = TwitchCredentials.load_from_file(SAVE_DATA)
+	if credentials == null:
+		credentials = TwitchCredentials.load_from_project_settings()
 	if credentials != null:
 		tmi.login(credentials)
 
