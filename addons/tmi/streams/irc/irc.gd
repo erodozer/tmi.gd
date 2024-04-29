@@ -3,6 +3,8 @@ extends TmiEventStream
 
 const ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
 
+static var logger = preload("../../logger.gd").new("irc")
+
 var socket: WebSocketPeer
 
 signal message_received(command: TwitchIrcCommand)
@@ -30,6 +32,7 @@ func _init():
 	message_received.connect(handle_message)
 	
 func connect_to_server():
+	logger.info("attempting to connect to IRC")
 	close_stream()
 
 	connection_state = ConnectionState.NOT_STARTED
@@ -39,7 +42,7 @@ func connect_to_server():
 	
 func close_stream():
 	if socket:
-		print("[tmi/irc] closing stream")
+		logger.info("closing stream")
 		socket.close()
 		socket = null
 	
@@ -68,19 +71,19 @@ func poll():
 	elif state == WebSocketPeer.STATE_CLOSED:
 		var code = socket.get_close_code()
 		var reason = socket.get_close_reason()
-		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
+		logger.warn("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 		set_process(false) # Stop processing.
 		socket = null
 	
 func _setup_connection():
-	print("[tmi/irc]: connection established")
+	logger.info("connection established")
 	connection_state = ConnectionState.STARTING
 	
 	# this requests for this client to receive additional twitch IRC specific commands
 	# in its command stream.
 	var err = socket.send_text("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
 	if err:
-		push_error("failed to request additional capabiltilies")
+		logger.error("failed to request additional capabiltilies")
 		connection_state = ConnectionState.FAILED
 		socket.close()
 		return
@@ -92,7 +95,7 @@ func _setup_connection():
 				return
 
 			if connection_state != ConnectionState.STARTED:
-				push_error("could not connect to IRC within time limit")
+				logger.error("could not connect to IRC within time limit")
 				connection_state = ConnectionState.FAILED
 				socket.close()
 			, CONNECT_ONE_SHOT
@@ -107,7 +110,7 @@ func _wait_for_acknowledgement():
 	# wait for cap req acknowledgement before proceeding
 	var acknowledged = await request
 	if not acknowledged:
-		push_error("capability request denied")
+		logger.error("capability request denied")
 		connection_state = ConnectionState.FAILED
 		socket.close()
 		return
@@ -125,7 +128,7 @@ func _login_with_credentials(credentials: TwitchCredentials):
 	
 	var authed = await authenticated
 	if not authed:
-		push_error("Authentication failed")
+		logger.error("Authentication failed")
 		connection_state = ConnectionState.FAILED
 		socket.close()
 		return
@@ -145,14 +148,13 @@ func _join_channel():
 	ping_interval.timeout.connect(self._send_ping)
 	add_child(ping_interval)
 	ping_interval.start()
-	print("[tmi/irc]: we're in hampwnDance")
+	logger.info("we're in hampwnDance")
 	
 	connection_state = ConnectionState.STARTED
 
 func _handle_packet(packet: PackedByteArray):
 	# converts a websocket message from the IRC stream into an object
 	var event = packet.get_string_from_utf8()
-	#print("from twitch:\n%s" % event)
 	
 	for message in event.strip_edges().split("\n"):
 		var command = _parse_twitch_message(message)

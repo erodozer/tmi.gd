@@ -3,6 +3,8 @@ class_name TmiOAuthService
 
 const utils = preload("../utils.gd")
 
+static var logger = preload("../logger.gd").new("oauth")
+
 # scopes required for overlay relevant EventSub
 var REQUIRED_SCOPES = " ".join([
 	"openid",
@@ -36,11 +38,6 @@ signal finished
 
 func _ready():
 	set_process(false)
-	
-	var token_refresher = Timer.new()
-	token_refresher.timeout.connect(refresh_token)
-	add_child(token_refresher)
-	token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
 
 func _create_peer() -> StreamPeerTCP:
 	return server.take_connection()
@@ -281,17 +278,39 @@ func _idtoken_credentials(id_token, access_token):
 	newCredentials.token = access_token
 	
 	await tmi.set_credentials(newCredentials)
+
+## Calls twitch API to validate if a token is still usable
+## Typically call this on startup after loading credentials from persistent storage
+func validate_token(credentials: TwitchCredentials):
+	var result = await utils.fetch(
+		self,
+		"https://id.twitch.tv/oauth2/validate",
+		HTTPClient.METHOD_GET,
+		{
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Authorization": "OAuth %s" % [credentials.token]
+		},
+		{},
+		true,
+	)
 	
+	if result.code != 200:
+		push_warning("[tmi/oauth] Invalid token provided, reauthentication is advised")
+	return result.code == 200
+	
+## Refreshes credentials to have a new access token if possible
+## This should be called when Twitch API requests fail with 401
 func refresh_token():
 	if tmi.credentials == null:
 		return
-	if tmi.credentials.refresh_token == "":
+	if not tmi.credentials.refresh_token:
+		await login(tmi.credentials)
 		return
 	
 	var result = await utils.fetch(
 		self,
 		"https://id.twitch.tv/oauth2/token",
-		HTTPClient.METHOD_GET,
+		HTTPClient.METHOD_POST,
 		{
 			"Content-Type": "application/x-www-form-urlencoded"
 		},

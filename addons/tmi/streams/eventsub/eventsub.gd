@@ -6,7 +6,7 @@ const utils = preload("../../utils.gd")
 const ENDPOINTS = {
 	"LIVE": {
 		"WEBSOCKET": "wss://eventsub.wss.twitch.tv/ws",
-		"SUBSCRIPTION": "https://api.twitch.tv/helix/eventsub/subscriptions"
+		"SUBSCRIPTION": "eventsub/subscriptions"
 	},
 	"LOCAL": {
 		"WEBSOCKET": "ws://127.0.0.1:8080/ws",
@@ -113,6 +113,8 @@ const SUBSCRIPTION_TYPES = [
 	}
 ]
 
+var logger = preload("../../logger.gd").new("sub")
+
 var socket: WebSocketPeer
 var reconnect_socket: WebSocketPeer
 
@@ -156,6 +158,8 @@ func connect_to_server():
 	if reconnect_socket:
 		return false
 	
+	logger.info("attempting to connect to EventSub")
+	
 	connection_state = ConnectionState.NOT_STARTED
 	
 	socket = WebSocketPeer.new()
@@ -174,7 +178,7 @@ func connect_to_server():
 	
 func close_stream():
 	if socket:
-		print("[tmi/sub] closing stream")
+		logger.info("closing stream")
 		socket.close()
 		socket = null
 	
@@ -204,7 +208,7 @@ func poll():
 		elif state == WebSocketPeer.STATE_CLOSED:
 			var code = socket.get_close_code()
 			var reason = socket.get_close_reason()
-			print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
+			logger.warn("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 			keep_alive_timer.stop()
 			set_process(false) # Stop processing.
 
@@ -224,15 +228,8 @@ func request_permission(permission, details):
 			for i in details.condition:
 				condition[i] = tmi.credentials.get(details.condition[i])
 	
-	var result = await utils.fetch(
-		self,
+	var result = await tmi.get_node("TwitchAPI").http(
 		ENDPOINTS[mode].SUBSCRIPTION,
-		HTTPClient.METHOD_POST,
-		{
-			"Authorization": "Bearer %s" % tmi.credentials.token,
-			"Client-Id": tmi.credentials.client_id,
-			"Content-Type": "application/json",
-		},
 		{
 			"type": permission,
 			"version": version,
@@ -242,13 +239,14 @@ func request_permission(permission, details):
 				"session_id": session_id
 			}
 		},
-		true
+		tmi.credentials,
+		HTTPClient.METHOD_POST,
 	)
 	
-	return [result.code < 300 or result.code == 409, result.code]
+	return result != null
 	
 func _setup_connection():
-	print("[tmi/sub]: connection established, requesting permissions")
+	logger.info("connection established, requesting permissions")
 	connection_state = ConnectionState.STARTING
 	
 	# wait for welcome message
@@ -259,16 +257,13 @@ func _setup_connection():
 		for subscription in SUBSCRIPTION_TYPES[i]:
 			var version = SUBSCRIPTION_TYPES[i][subscription]
 			var success = await request_permission(subscription, version)
-			if not success[0]:
-				push_warning("Authentication failed for %s, disabling message type" % subscription)
-				if success[1] == 401 or success[1] == 403:
-					push_warning("Invalid token, consider refreshing or clearing credentials")
-					print("[tmi/sub]: invalid token, unable to request permissions.")
-					connection_state = ConnectionState.FAILED
-					close_stream()
-					return
+			if not success:
+				logger.warn("Authentication failed for %s, disabling message type" % subscription)
+				connection_state = ConnectionState.FAILED
+				close_stream()
+				return
 
-	print("[tmi/sub]: we're in 😎")
+	logger.info("we're in 😎")
 	
 	tmi.command.emit(
 		Tmi.EventType.ROOM_STATE,

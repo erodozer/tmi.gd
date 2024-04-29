@@ -2,6 +2,7 @@ extends Node
 class_name TmiBttvService
 
 const twitch_utils = preload("../utils.gd")
+static var logger = preload("../logger.gd").new("bttv")
 
 @onready var tmi: Tmi = get_parent()
 
@@ -10,11 +11,11 @@ func _on_twitch_command(type: String, evt):
 		return
 		
 	tmi._load_stack["bttv"] = true
-	print("[tmi/bttv]: fetching emotes list")
+	logger.info("fetching emotes list")
 	await preload_global_emotes()
 	await preload_emotes(evt.channel_id)
 	tmi._load_stack.erase("bttv")
-	print("[tmi/bttv]: fetching emotes list completed")
+	logger.info("fetching emotes list completed")
 	
 func fetch_emote_images(emotes):
 	if len(emotes) == 0:
@@ -65,7 +66,7 @@ func preload_emotes(channel_id:String):
 		true
 	)
 	if result.code != 200:
-		push_warning("unable to fetch Bttv emotes for channel %s" % channel_id)
+		logger.warn("unable to fetch Bttv emotes for channel %s" % channel_id)
 		return
 	
 	var emotes = []

@@ -8,6 +8,8 @@ const PROFILE_CACHE_KEY = "twitch_api"
 
 const utils = preload("../utils.gd")
 
+static var logger = preload("../logger.gd").new("api")
+
 ## enables enriching profiles by fetching their profile image resource and saving it to disk
 @export var include_profile_images = true
 @export var image_cache_duration = 24 * 3600 # 24 hr
@@ -20,7 +22,7 @@ var credentials: TwitchCredentials
 
 signal user_cached(profile)
 
-func http(command: String, params = {}, credentials = tmi.credentials):
+func http(command: String, params = {}, credentials = tmi.credentials, method = HTTPClient.METHOD_GET):
 	if credentials == null:
 		return null
 	if credentials.token == null or credentials.token == "":
@@ -29,17 +31,23 @@ func http(command: String, params = {}, credentials = tmi.credentials):
 	var res = await utils.fetch(
 		self,
 		"https://api.twitch.tv/helix/%s" % command,
-		HTTPClient.METHOD_GET,
+		method,
 		{
 			"Authorization": "Bearer %s" % credentials.token,
 			"Client-Id": credentials.client_id,
+			"Content-Type": "application/json",
 		},
 		params,
 		true
 	)
 	if res.code < 300:
 		return res.data
-	push_warning("[tmi/api] twitch returned invalid response: %s" % res.code)
+	logger.warn("twitch returned invalid response: %s" % res.code)
+	
+	# refresh token on authorization failed
+	if res.code == 401 and tmi.has_node("OAuth") and credentials == tmi.credentials:
+		return await tmi.get_node("OAuth").refresh_token()
+	
 	return null
 
 func fetch_profile_image(profile: TmiUserState):

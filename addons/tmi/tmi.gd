@@ -94,11 +94,11 @@ func start():
 	irc.close_stream()
 	eventsub.close_stream()
 		
-	if credentials.token:
-		print("[tmi]: attempting to connect to EventSub")
+	# only allow eventsub when listening to self
+	if credentials.token and credentials.broadcaster_user_id == credentials.user_id:
 		var success = await eventsub.connect_to_server()
 		if not success and has_node("OAuth"):
-			print("[tmi/sub]: token potentially expired, attempting refresh")
+			eventsub.logger.warn("[tmi/sub]: token potentially expired, attempting refresh")
 			var oauth = get_node("OAuth") as TmiOAuthService
 			oauth.refresh_token()
 			# attempt a second time after refreshing
@@ -109,7 +109,6 @@ func start():
 	
 	# IRC is only useful for unauthenticated sessions or
 	# listening to other channels when using a standard User Access Token
-	print("[tmi]: attempting to connect to IRC")
 	await irc.connect_to_server()
 
 func connection_state() -> ConnectionStatus:
@@ -126,24 +125,30 @@ func enrich(obj: TmiAsyncState):
 	return obj
 
 func login(credentials: TwitchCredentials):
+	var logger = preload("./logger.gd").new("oauth")
+	
 	if not credentials.client_id:
-		push_warning("[tmi/oauth]: Client Id not provided, assuming unauthenticated session")
+		logger.info("Client Id not provided, assuming unauthenticated session")
 		await set_credentials(credentials)
 		return
 		
 	if credentials.user_login.begins_with("justintv"):
-		push_warning("[tmi/oauth]: Anonymous session detected")
+		logger.info("Anonymous session detected")
 		await set_credentials(credentials)
 		return
 
-	if credentials.token:
-		push_warning("[tmi/oauth]: Access token provided, assuming authenticated session")
-		await set_credentials(credentials)
-		return
-	
 	var oauth = get_node("OAuth")
+	if credentials.token:
+		logger.info("Access token provided, assuming authenticated session")
+		if oauth == null or await oauth.validate_token(credentials):
+			await set_credentials(credentials)
+			return
+		else:
+			credentials.token = ""
+			logger.warn("Access token invalid, will need to reauthenticate")
+	
 	if oauth == null:
-		push_warning("Can not login to Twitch, Tmi is missing OAuth service child")
+		logger.error("Can not login to Twitch, Tmi is missing OAuth service child")
 		return
 		
 	await oauth.login(credentials)

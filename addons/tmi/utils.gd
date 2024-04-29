@@ -1,5 +1,7 @@
 extends Object
 
+static var logger = preload("./logger.gd").new("utils")
+
 static var magick_loader
 
 static func http_headers(headers: Dictionary):
@@ -70,20 +72,20 @@ static func save_static(filepath: String, buffer: PackedByteArray) -> Texture2D:
 	if filepath.ends_with("png"):
 		var error = image.load_png_from_buffer(buffer)
 		if error != OK:
-			push_error("Couldn't load the image.")
+			logger.error("Couldn't parse the image from buffer")
 			return null
 		image.save_png(filepath)
 	elif filepath.ends_with("webp"):
 		var error = image.load_webp_from_buffer(buffer)
 		if error != OK:
-			push_error("Couldn't load the image.")
+			logger.error("Couldn't parse the image from buffer")
 			return null
 		image.save_webp(filepath)
 	else:
-		push_error("unsupported format")
+		logger.error("unsupported image format")
 		return
 		
-	print("[tmi/img]: static image saved: %s" % filepath)
+	logger.debug("static image saved: %s" % filepath)
 	return load_static(filepath)
 
 static func qs(params: Dictionary = {}) -> String:
@@ -129,7 +131,7 @@ static func fetch(n: Node, url: String, method: HTTPClient.Method = HTTPClient.M
 		data,
 	)
 	if error != OK:
-		push_error("[tmi/fetch]: An error occurred in the HTTP request.")
+		logger.error("An error occurred in the HTTP request.")
 		return null
 	
 	var result = await http_request.request_completed
@@ -144,7 +146,7 @@ static func fetch(n: Node, url: String, method: HTTPClient.Method = HTTPClient.M
 		body = JSON.parse_string(body)
 	
 	if status >= 400:
-		push_error("[tmi/fetch]: request failed, url:%s, status: %d, body: %s, data:%s" % [url, status, body, data])
+		logger.warn("request failed, url:%s, status: %d, body: %s, data:%s" % [url, status, body, data])
 	
 	return {
 		"code": status,

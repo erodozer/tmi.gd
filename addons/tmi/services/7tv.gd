@@ -2,6 +2,7 @@ extends Node
 class_name Tmi7tvService
 
 const twitch_utils = preload("../utils.gd")
+static var logger = preload("../logger.gd").new("7tv")
 
 @onready var tmi: Tmi = get_parent()
 
@@ -9,11 +10,11 @@ func _on_twitch_command(type: String, evt):
 	if type != Tmi.EventType.ROOM_STATE:
 		return
 		
-	print("[tmi/7tv]: fetching emote list")
+	logger.info("fetching emote list")
 	tmi._load_stack["7tv"] = true
 	await preload_emotes(evt.channel_id)
 	tmi._load_stack.erase("7tv")
-	print("[tmi/7tv]: fetching emotes list completed")
+	logger.info("fetching emotes list completed")
 
 func preload_emotes(channel_id:String):
 	var body = await twitch_utils.fetch(self,
@@ -23,7 +24,7 @@ func preload_emotes(channel_id:String):
 		true
 	)
 	if body.code != 200:
-		push_warning("unable to fetch emotes for channel %s" % channel_id)
+		logger.warn("unable to fetch emotes for channel %s" % channel_id)
 		return
 	
 	var tmi = get_parent() as Tmi
