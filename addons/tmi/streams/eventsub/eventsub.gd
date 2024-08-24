@@ -304,7 +304,7 @@ func handle_websocket_message(command: Dictionary):
 				socket_connected.emit()
 		"session_reconnect":
 			reconnect_socket = WebSocketPeer.new()
-			reconnect_socket.connect_to_url(command.metadata.payload.session.reconenct_url)
+			reconnect_socket.connect_to_url(command.payload.session.reconnect_url)
 		"notification":
 			if not keep_alive_timer.paused:
 				keep_alive_timer.start(keep_alive_timer.wait_time)
