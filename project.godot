@@ -12,7 +12,7 @@ config_version=5
 
 config/name="tmi.gd"
 run/main_scene="res://example/example.tscn"
-config/features=PackedStringArray("4.2", "Forward Plus")
+config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 tmi/client_id=""
 tmi/client_secret=""

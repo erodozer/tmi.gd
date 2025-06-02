@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cmfr6463oc3to" path="res://addons/tmi/tmi.tscn" id="1_0nacd"]
 [ext_resource type="PackedScene" uid="uid://2hx3mbwdlv1w" path="res://example/control_panel/control_panel.tscn" id="1_hc6cj"]
-[ext_resource type="Script" path="res://example/example.gd" id="1_ix281"]
+[ext_resource type="Script" uid="uid://bokmpxw710aev" path="res://example/example.gd" id="1_ix281"]
 [ext_resource type="PackedScene" uid="uid://ry571ddp7oys" path="res://example/chat/chat.tscn" id="3_y7inn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_41wmr"]

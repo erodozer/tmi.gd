@@ -30,6 +30,8 @@ func _init():
 	COMMAND_REGEX.compile("(@(?<metadata>.*)\\s)?(:(.*!.*@)?((?<username>.*)\\.)?tmi\\.twitch\\.tv\\s)(?<command>(\\S*))\\s*(?<message>.*)")
 	
 	message_received.connect(handle_message)
+	authenticated.connect(_on_authenticated)
+	request.connect(_on_acknowledgement)
 	
 func connect_to_server():
 	logger.info("attempting to connect to IRC")
@@ -39,6 +41,15 @@ func connect_to_server():
 	socket = WebSocketPeer.new()
 	# create websocket connection to twitch irc endpoitn
 	socket.connect_to_url(ENDPOINT)
+	
+	while true:
+		match connection_state:
+			ConnectionState.FAILED:
+				return false
+			ConnectionState.STARTED:
+				return true
+			_:
+				await get_tree().process_frame
 	
 func close_stream():
 	if socket:
@@ -72,7 +83,6 @@ func poll():
 		var code = socket.get_close_code()
 		var reason = socket.get_close_reason()
 		logger.warn("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
-		set_process(false) # Stop processing.
 		socket = null
 	
 func _setup_connection():
@@ -101,14 +111,11 @@ func _setup_connection():
 			, CONNECT_ONE_SHOT
 	)
 		
-	_wait_for_acknowledgement()
-		
-func _wait_for_acknowledgement():
+func _on_acknowledgement(acknowledged):
 	if not socket:
 		return
 	
 	# wait for cap req acknowledgement before proceeding
-	var acknowledged = await request
 	if not acknowledged:
 		logger.error("capability request denied")
 		connection_state = ConnectionState.FAILED
@@ -126,7 +133,7 @@ func _login_with_credentials(credentials: TwitchCredentials):
 	socket.send_text("PASS %s" % credentials.get_password.call())
 	socket.send_text("NICK %s" % credentials.user_login)
 	
-	var authed = await authenticated
+func _on_authenticated(authed):
 	if not authed:
 		logger.error("Authentication failed")
 		connection_state = ConnectionState.FAILED

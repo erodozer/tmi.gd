@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://2hx3mbwdlv1w"]
 
-[ext_resource type="Script" path="res://example/control_panel/control_panel.gd" id="1_6mp46"]
+[ext_resource type="Script" uid="uid://cm6sot84hfdb7" path="res://example/control_panel/control_panel.gd" id="1_6mp46"]
 
 [node name="ControlPanel" type="VBoxContainer"]
 offset_right = 1152.0

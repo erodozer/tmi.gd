@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ry571ddp7oys"]
 
-[ext_resource type="Script" path="res://example/chat/chat.gd" id="1_qeaek"]
+[ext_resource type="Script" uid="uid://d20yjmpmurado" path="res://example/chat/chat.gd" id="1_qeaek"]
 
 [node name="Chat" type="ScrollContainer"]
 anchors_preset = 15

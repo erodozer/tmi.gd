@@ -76,14 +76,14 @@ func _on_twitch_connection_status_changed(status):
 
 func _on_login_button_pressed():
 	var credentials: TwitchCredentials
-	if not %ClientId.text:
+	if not %ClientId.text or not %UserName.text:
 		credentials = TwitchCredentials.get_fallback_credentials()
 	else:
 		credentials = TwitchCredentials.new()
 		credentials.client_id = %ClientId.text
 		credentials.client_secret = %ClientSecret.text
-	credentials.user_id = %UserId.text
-	credentials.user_login = %UserName.text
+		credentials.user_id = %UserId.text
+		credentials.user_login = %UserName.text
 	credentials.channel = %Channel.text
 	
 	await tmi.login(credentials)

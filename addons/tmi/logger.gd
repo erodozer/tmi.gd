@@ -46,10 +46,10 @@ func warn(msg: String):
 	var text = fmt_msg(msg, "WARN")
 	match allowed_level:
 		LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN:
-			push_warning(text)
+			print(text)
 			
 func error(msg: String):
 	var text = fmt_msg(msg, "ERROR")
 	match allowed_level:
 		LogLevel.DEBUG, LogLevel.WARN, LogLevel.INFO, LogLevel.ERROR:
-			push_error(msg)
+			print(msg)
