@@ -1,7 +1,7 @@
 class_name TwitchIrc
 extends TmiEventStream
 
-const ENDPOINT = "ws://irc-ws.chat.twitch.tv:80"
+const ENDPOINT = "wss://irc-ws.chat.twitch.tv:443"
 
 static var logger = preload("../../logger.gd").new("irc")
 
